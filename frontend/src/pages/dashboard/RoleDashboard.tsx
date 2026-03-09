@@ -6,6 +6,7 @@ import OrgDashboard from './organization/OrgDashboard'
 import ModeratorDashboard from './moderator/ModeratorDashboard'
 import AdminDashboard from './admin/AdminDashboard'
 import ProfilePage from './ProfilePage'
+import MapPage from './MapPage'
 
 export default function RoleDashboard() {
   const { user } = useAuthStore()
@@ -22,6 +23,7 @@ export default function RoleDashboard() {
   return (
     <Routes>
       <Route path="profile" element={<ProfilePage />} />
+      <Route path="map" element={<MapPage />} />
       <Route path="*" element={DASHBOARDS[role] ?? <CitizenDashboard />} />
     </Routes>
   )

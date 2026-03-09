@@ -3,9 +3,10 @@ from datetime import datetime, timezone
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_, or_, cast
 from sqlalchemy.orm import selectinload
 from geoalchemy2.functions import ST_GeomFromText, ST_DWithin, ST_Y, ST_X
+from geoalchemy2.types import Geometry
 from app.core.database import get_db
 from app.core.security import get_current_user, get_optional_user, require_roles
 from app.core.audit import log_activity
@@ -111,7 +112,9 @@ async def list_reports(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_optional_user),
 ):
-    stmt = select(Report).options(selectinload(Report.images)).where(Report.deleted_at.is_(None))
+    stmt = select(Report, ST_Y(cast(Report.location, Geometry)).label("lat"), ST_X(cast(Report.location, Geometry)).label("lng")) \
+        .options(selectinload(Report.images)) \
+        .where(Report.deleted_at.is_(None))
     if type:
         types = [t.strip() for t in type.split(",")]
         stmt = stmt.where(Report.disaster_type.in_(types))
@@ -124,16 +127,17 @@ async def list_reports(
         stmt = stmt.where(Report.district == district)
     total = (await db.execute(select(func.count()).select_from(stmt.subquery()))).scalar_one()
     stmt = stmt.order_by(Report.created_at.desc()).offset((page - 1) * limit).limit(limit)
-    reports = (await db.execute(stmt)).scalars().all()
+    reports_with_coords = (await db.execute(stmt)).all()
     items = []
-    for r in reports:
+    for r, lat, lng in reports_with_coords:
         d = {c.name: getattr(r, c.name) for c in r.__table__.columns}
         d["images"] = [{"id": i.id, "url": i.url, "filename": i.filename} for i in r.images]
-        d.pop("contact_email", None)
-        d.pop("contact_phone", None)
+        if not current_user or current_user.role.value == "user":
+            d.pop("contact_email", None)
+            d.pop("contact_phone", None)
         d.pop("location", None)
-        d["lat"] = None
-        d["lng"] = None
+        d["lat"] = lat
+        d["lng"] = lng
         items.append(d)
     return {"items": items, "total": total, "page": page, "limit": limit}
 
@@ -141,11 +145,20 @@ async def list_reports(
 @router.get("/mine")
 async def my_reports(page: int = Query(1, ge=1), limit: int = Query(20, ge=1, le=100),
                      current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    stmt = select(Report).options(selectinload(Report.images)).where(
+    stmt = select(Report, ST_Y(cast(Report.location, Geometry)).label("lat"), ST_X(cast(Report.location, Geometry)).label("lng")) \
+        .options(selectinload(Report.images)).where(
         Report.submitted_by == current_user.id, Report.deleted_at.is_(None)
     ).order_by(Report.created_at.desc()).offset((page - 1) * limit).limit(limit)
-    reports = (await db.execute(stmt)).scalars().all()
-    return {"items": [r for r in reports], "page": page, "limit": limit}
+    reports = (await db.execute(stmt)).all()
+    items = []
+    for r, lat, lng in reports:
+        d = {c.name: getattr(r, c.name) for c in r.__table__.columns}
+        d["images"] = [{"id": i.id, "url": i.url, "filename": i.filename} for i in r.images]
+        d.pop("location", None)
+        d["lat"] = lat
+        d["lng"] = lng
+        items.append(d)
+    return {"items": items, "page": page, "limit": limit}
 
 
 @router.get("/{report_id}")
@@ -176,6 +189,7 @@ async def update_report_status(
     elif body.status == ReportStatus.resolved:
         report.resolved_by = current_user.id
         report.resolved_at = datetime.now(timezone.utc)
+        report.deleted_at = datetime.now(timezone.utc)
 
     action_map = {
         ReportStatus.verified: "report_verify",

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { MapContainer, TileLayer, CircleMarker, Popup, Polygon, Tooltip } from 'react-leaflet'
+import { MapContainer, TileLayer, Popup, Polygon, Tooltip, Marker } from 'react-leaflet'
+import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useMapStore } from '@/store/mapStore'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +16,17 @@ const TYPE_DOT: Record<string, string> = {
   damage: '#3B82F6',
 }
 
+const getCustomIcon = (color: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3" fill="white"/></svg>`
+  return L.divIcon({
+    className: 'custom-pin',
+    html: `<div style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">${svg}</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  })
+}
+
 interface ReportFeature {
   type: 'Feature'
   geometry: { type: 'Point'; coordinates: [number, number] }
@@ -27,9 +39,10 @@ interface ReportFeature {
 interface Props {
   compact?: boolean
   style?: React.CSSProperties
+  reportTypeFilter?: 'emergency' | 'damage'
 }
 
-export default function DisasterMap({ compact = false, style }: Props) {
+export default function DisasterMap({ compact = false, style, reportTypeFilter }: Props) {
   const { layers, filters } = useMapStore()
   const { t } = useTranslation()
 
@@ -63,7 +76,7 @@ export default function DisasterMap({ compact = false, style }: Props) {
   const mapStyle: React.CSSProperties = style || { height: compact ? '350px' : 'calc(100vh - 3.5rem)', width: '100%' }
 
   return (
-    <div className="relative">
+    <div className="relative h-full w-full">
       <MapContainer
         center={[16.047, 108.206]}
         zoom={compact ? 5 : 6}
@@ -77,14 +90,12 @@ export default function DisasterMap({ compact = false, style }: Props) {
           maxZoom={19}
         />
 
-        {/* Report markers */}
         {layers.reports && reportsGeo?.features?.map((f: ReportFeature) => {
+          if (reportTypeFilter && f.properties.report_type !== reportTypeFilter) return null
           const [lng, lat] = f.geometry.coordinates
           const color = TYPE_DOT[f.properties.report_type] || '#6B7280'
-          const r = f.properties.severity === 'critical' ? 12 : f.properties.severity === 'high' ? 9 : 7
           return (
-            <CircleMarker key={f.properties.id} center={[lat, lng]}
-              radius={r} pathOptions={{ color, fillColor: color, fillOpacity: 0.8, weight: 2 }}>
+            <Marker key={f.properties.id} position={[lat, lng]} icon={getCustomIcon(color)}>
               <Popup>
                 <div className="text-gray-900">
                   <p className="font-bold">{f.properties.title}</p>
@@ -95,7 +106,7 @@ export default function DisasterMap({ compact = false, style }: Props) {
                   </span>
                 </div>
               </Popup>
-            </CircleMarker>
+            </Marker>
           )
         })}
 
@@ -103,10 +114,9 @@ export default function DisasterMap({ compact = false, style }: Props) {
         {layers.support && supportGeo?.features?.map((f: any) => {
           const [lng, lat] = f.geometry.coordinates
           return (
-            <CircleMarker key={f.properties.id} center={[lat, lng]}
-              radius={8} pathOptions={{ color: '#22C55E', fillColor: '#22C55E', fillOpacity: 0.85, weight: 2 }}>
+            <Marker key={f.properties.id} position={[lat, lng]} icon={getCustomIcon('#22C55E')}>
               <Popup><div><p className="font-bold">{f.properties.title}</p><p className="text-sm text-green-700">{t(`support.type.${f.properties.support_type}`)}</p></div></Popup>
-            </CircleMarker>
+            </Marker>
           )
         })}
 

@@ -36,21 +36,35 @@ const roleBadge: Record<string, string> = {
 
 // ─── Overview Tab ───────────────────────────────────────────────────────────
 function OverviewTab() {
+  const { t } = useTranslation()
   const { data: stats } = useQuery({ queryKey: ['admin', 'stats'], queryFn: async () => { const { data } = await api.get('/admin/system/stats'); return data } })
   const { data: byType = [] } = useQuery({ queryKey: ['analytics', 'by-type'], queryFn: async () => { const { data } = await api.get('/analytics/reports/by-type'); return data } })
   const { data: trend = [] } = useQuery({ queryKey: ['analytics', 'trend'], queryFn: async () => { const { data } = await api.get('/analytics/reports/trend'); return data } })
 
   const CARDS = [
-    { label: 'Tổng báo cáo', value: stats?.total_reports ?? 0, icon: <FileText size={20} className="text-blue-400" />, color: 'text-blue-400' },
-    { label: 'Chờ xử lý', value: stats?.pending_reports ?? 0, icon: <RefreshCw size={20} className="text-yellow-400" />, color: 'text-yellow-400' },
-    { label: 'Cảnh báo hoạt động', value: stats?.active_alerts ?? 0, icon: <Bell size={20} className="text-red-400" />, color: 'text-red-400' },
-    { label: 'Tổng người dùng', value: stats?.total_users ?? 0, icon: <Users size={20} className="text-indigo-400" />, color: 'text-indigo-400' },
-    { label: 'Chờ duyệt tài khoản', value: stats?.pending_users ?? 0, icon: <Shield size={20} className="text-orange-400" />, color: 'text-orange-400' },
-    { label: 'Điểm hỗ trợ hoạt động', value: stats?.active_offers ?? 0, icon: <Activity size={20} className="text-green-400" />, color: 'text-green-400' },
+    { label: t('dashboard.stats.total_reports', 'Tổng báo cáo'), value: stats?.total_reports ?? 0, icon: <FileText size={20} className="text-blue-400" />, color: 'text-blue-400' },
+    { label: t('dashboard.stats.pending_reports', 'Chờ xử lý'), value: stats?.pending_reports ?? 0, icon: <RefreshCw size={20} className="text-yellow-400" />, color: 'text-yellow-400' },
+    { label: t('dashboard.stats.active_alerts', 'Cảnh báo hoạt động'), value: stats?.active_alerts ?? 0, icon: <Bell size={20} className="text-red-400" />, color: 'text-red-400' },
+    { label: t('dashboard.stats.total_users', 'Tổng người dùng'), value: stats?.total_users ?? 0, icon: <Users size={20} className="text-indigo-400" />, color: 'text-indigo-400' },
+    { label: t('dashboard.stats.pending_users', 'Chờ duyệt tài khoản'), value: stats?.pending_users ?? 0, icon: <Shield size={20} className="text-orange-400" />, color: 'text-orange-400' },
+    { label: t('dashboard.stats.active_offers', 'Điểm hỗ trợ hoạt động'), value: stats?.active_offers ?? 0, icon: <Activity size={20} className="text-green-400" />, color: 'text-green-400' },
   ]
 
-  const emptyPie = [{ type: 'Chưa có dữ liệu', count: 1 }]
-  const pieData = byType.length > 0 ? byType : emptyPie
+  const emptyPie = [{ name: t('common.no_data', 'Chưa có dữ liệu'), count: 1, type: 'empty' }]
+  const totalReportsByType = byType.reduce((acc: number, curr: any) => acc + curr.count, 0)
+  const pieData = byType.length > 0 
+    ? byType.map((d: any) => ({ ...d, name: t(`report.type.${d.type}`, d.type) })) 
+    : emptyPie
+
+  const formatDateStr = (dateStr: string) => {
+    if (!dateStr || dateStr === '--') return '--'
+    const [month, day] = dateStr.split('-')
+    return `${day}/${month}`
+  }
+
+  const lineData = trend.length > 0 
+    ? trend.map((d: any) => ({ ...d, day: formatDateStr(d.period?.slice(5, 10)) })) 
+    : [{ day: '--', count: 0 }]
 
   return (
     <div className="space-y-6">
@@ -70,42 +84,66 @@ function OverviewTab() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card">
-          <h3 className="font-semibold text-white mb-6">Báo cáo theo loại thiên tai</h3>
-          <ResponsiveContainer width="100%" height={280}>
+          <h3 className="font-semibold text-white mb-6">{t('admin.reports_by_type', 'Báo cáo theo loại thiên tai')}</h3>
+          <ResponsiveContainer width="100%" height={320}>
             <PieChart>
-              <Pie data={pieData} dataKey="count" nameKey="type" cx="50%" cy="50%" innerRadius={60} outerRadius={90}
-                paddingAngle={5} label={(e: any) => `${e.type ?? e.name} (${e.count})`} stroke="none">
-                {pieData.map((_: any, i: number) => (
-                  <Cell key={i} fill={byType.length > 0 ? PIE_COLORS[i % PIE_COLORS.length] : '#374151'} />
+              <Pie 
+                data={pieData} 
+                dataKey="count" 
+                nameKey="name" 
+                cx="50%" 
+                cy="50%" 
+                innerRadius={70} 
+                outerRadius={100}
+                paddingAngle={5} 
+                label={byType.length > 0 ? (e: any) => {
+                  const percent = ((e.count / totalReportsByType) * 100).toFixed(0)
+                  return `${e.name} (${percent}%)`
+                } : undefined} 
+                stroke="none"
+              >
+                {pieData.map((d: any, i: number) => (
+                  <Cell key={i} fill={d.type !== 'empty' ? PIE_COLORS[i % PIE_COLORS.length] : '#374151'} />
                 ))}
               </Pie>
               <Tooltip
+                formatter={(value: number, name: string) => [value, name]}
                 contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: '#374151', borderRadius: '8px', color: '#fff' }}
                 itemStyle={{ color: '#fff' }}
               />
-              <Legend verticalAlign="bottom" height={36} />
+              <Legend verticalAlign="bottom" height={36} iconType="circle" />
             </PieChart>
           </ResponsiveContainer>
-          {byType.length === 0 && <p className="text-center text-gray-600 text-sm -mt-8 relative z-10">Chưa có báo cáo nào</p>}
+          {byType.length === 0 && <p className="text-center text-gray-600 text-sm -mt-8 relative z-10">{t('common.no_data', 'Chưa có dữ liệu')}</p>}
         </div>
 
         <div className="card">
-          <h3 className="font-semibold text-white mb-6">Xu hướng báo cáo (90 ngày)</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={trend.length > 0 ? trend.map((d: any) => ({ ...d, day: d.period?.slice(5, 10) })) : [{ day: '--', count: 0 }]}>
+          <h3 className="font-semibold text-white mb-6">{t('admin.report_trend', 'Xu hướng báo cáo (90 ngày)')}</h3>
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
               <XAxis dataKey="day" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} tickLine={false} axisLine={false} dx={-10} />
+              <YAxis allowDecimals={false} stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} tickLine={false} axisLine={false} dx={-10} />
               <Tooltip
-                contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.9)', borderColor: '#374151', borderRadius: '8px', color: '#fff' }}
-                itemStyle={{ color: '#EF4444' }}
+                labelFormatter={(label) => `${t('common.date', 'Ngày')}: ${label}`}
+                formatter={(value: number) => [value, t('dashboard.stats.report_count', 'Số lượng báo cáo')]}
+                contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.95)', borderColor: '#374151', borderRadius: '8px', color: '#fff', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)' }}
+                itemStyle={{ color: '#EF4444', fontWeight: 'bold' }}
                 cursor={{ stroke: '#4B5563', strokeWidth: 1, strokeDasharray: '4 4' }}
               />
-              <Line type="monotone" dataKey="count" name="Số lượng báo cáo" stroke="#EF4444" strokeWidth={3}
-                dot={{ r: 4, fill: '#111827', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#EF4444', strokeWidth: 0 }} />
+              <Line 
+                type="monotone" 
+                dataKey="count" 
+                name={t('dashboard.stats.report_count', 'Số lượng báo cáo')} 
+                stroke="#EF4444" 
+                strokeWidth={3}
+                dot={{ r: 4, fill: '#111827', strokeWidth: 2, stroke: '#EF4444' }} 
+                activeDot={{ r: 6, fill: '#EF4444', strokeWidth: 0 }} 
+                animationDuration={1500}
+              />
             </LineChart>
           </ResponsiveContainer>
-          {trend.length === 0 && <p className="text-center text-gray-600 text-sm -mt-8 relative z-10">Chưa có dữ liệu</p>}
+          {trend.length === 0 && <p className="text-center text-gray-600 text-sm -mt-8 relative z-10">{t('common.no_data', 'Chưa có dữ liệu')}</p>}
         </div>
       </div>
     </div>

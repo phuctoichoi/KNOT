@@ -33,7 +33,9 @@ export default function Navbar() {
 
         {/* Nav links */}
         <div className="hidden md:flex items-center gap-1">
-          <Link to="/map"    className="btn-ghost"><Map size={16} />{t('nav.map')}</Link>
+          {isAuthenticated() && (
+            <Link to="/dashboard/map" className="btn-ghost"><Map size={16} />{t('nav.map')}</Link>
+          )}
           <Link to="/alerts" className="btn-ghost"><AlertTriangle size={16} />{t('nav.alerts')}</Link>
           <Link to="/support" className="btn-ghost"><Heart size={16} />{t('nav.support')}</Link>
         </div>

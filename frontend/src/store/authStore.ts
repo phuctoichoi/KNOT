@@ -12,6 +12,8 @@ interface User {
   province?: string
   district?: string
   phone?: string
+  lat?: number
+  lng?: number
 }
 
 interface AuthStore {

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import Navbar from '@/components/layout/Navbar'
@@ -5,15 +6,19 @@ import AlertBanner from '@/components/alerts/AlertBanner'
 import { CheckCircle, MapPin } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import api from '@/services/api'
+import { getDistance, formatDistance } from '@/utils/distance'
+import ReportDetailModal from '@/components/reports/ReportDetailModal'
 
 export default function VolunteerDashboard() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const qc = useQueryClient()
 
+  const [expanded, setExpanded] = useState<string | null>(null)
+
   const { data } = useQuery({
     queryKey: ['reports', 'pending'],
-    queryFn: async () => { const { data } = await api.get('/reports?status=pending,verified&limit=20'); return data }
+    queryFn: async () => { const { data } = await api.get('/reports?status=pending,verified,in_progress&limit=20'); return data }
   })
 
   const updateStatus = useMutation({
@@ -41,7 +46,7 @@ export default function VolunteerDashboard() {
         ) : (
           <div className="space-y-3">
             {reports.map((r: any) => (
-              <div key={r.id} className="card">
+              <div key={r.id} className="card cursor-pointer hover:bg-gray-800/80 transition-colors" onClick={() => setExpanded(e => e === r.id ? null : r.id)}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -53,24 +58,32 @@ export default function VolunteerDashboard() {
                     <p className="font-semibold text-white">{r.title}</p>
                     <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
                       <MapPin size={11} />{r.address_text || r.province || 'Chưa rõ'}
+                      {user?.lat && user?.lng && r.lat && r.lng && (
+                        <span className="ml-2 text-red-400 font-medium whitespace-nowrap">
+                          ({formatDistance(getDistance(user.lat, user.lng, r.lat, r.lng))})
+                        </span>
+                      )}
                     </p>
-                  </div>
-                  <div className="flex gap-2">
-                    {r.status === 'pending' && (
-                      <button onClick={() => updateStatus.mutate({ id: r.id, status: 'verified' })} className="btn-primary text-sm py-1.5 px-3">
-                        <CheckCircle size={14} />Xác minh
-                      </button>
-                    )}
-                    {r.status === 'verified' && (
-                      <button onClick={() => updateStatus.mutate({ id: r.id, status: 'in_progress' })} className="btn-primary text-sm py-1.5 px-3">
-                        Xử lý
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
+        )}
+
+        {/* Modal View for Expanded Report */}
+        {expanded && reports.find((r: any) => r.id === expanded) && (
+          <ReportDetailModal
+            report={reports.find((r: any) => r.id === expanded)}
+            userLat={user?.lat}
+            userLng={user?.lng}
+            onClose={() => setExpanded(null)}
+            actions={{
+              verify: (id: string) => updateStatus.mutate({ id, status: 'verified' }),
+              process: (id: string) => updateStatus.mutate({ id, status: 'in_progress' }),
+              resolve: (id: string) => updateStatus.mutate({ id, status: 'resolved' }),
+            }}
+          />
         )}
       </div>
     </div>

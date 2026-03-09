@@ -28,7 +28,9 @@ export default function ProfilePage() {
   const [pwdError, setPwdError] = useState('')
   const [pwdSuccess, setPwdSuccess] = useState('')
 
-  const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null)
+  const [gps, setGps] = useState<{ lat: number; lng: number } | null>(
+    user?.lat && user?.lng ? { lat: user.lat, lng: user.lng } : null
+  )
   const [address, setAddress] = useState('')
   const [gpsLoading, setGpsLoading] = useState(false)
   const [gpsError, setGpsError] = useState('')
@@ -107,6 +109,8 @@ export default function ProfilePage() {
       organization_name: isOrg ? form.organization_name : undefined,
       province: form.province || null,
       district: form.district || null,
+      lat: gps?.lat || null,
+      lng: gps?.lng || null,
     })
   }
 

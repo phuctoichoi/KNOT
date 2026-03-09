@@ -2,7 +2,7 @@ import uuid
 import enum
 from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import String, Text, Enum, Boolean, DateTime, ForeignKey, Integer
+from sqlalchemy import String, Text, Enum, Boolean, DateTime, ForeignKey, Integer, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, INET
 from app.core.database import Base, TimestampMixin
@@ -39,6 +39,8 @@ class User(Base, TimestampMixin):
     organization_name: Mapped[Optional[str]] = mapped_column(String(300))
     province: Mapped[Optional[str]] = mapped_column(String(100))
     district: Mapped[Optional[str]] = mapped_column(String(100))
+    lat: Mapped[Optional[float]] = mapped_column(Float)
+    lng: Mapped[Optional[float]] = mapped_column(Float)
     last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     last_password_change: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))

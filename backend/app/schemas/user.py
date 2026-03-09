@@ -56,6 +56,8 @@ class UserPublic(BaseModel):
     email_verified: bool = False
     organization_name: Optional[str] = None
     province: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
     avatar_url: Optional[str] = None
     created_at: datetime
 
@@ -91,6 +93,8 @@ class UserUpdate(BaseModel):
     organization_name: Optional[str] = None
     province: Optional[str] = None
     district: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
 
 
 class UserStatusUpdate(BaseModel):

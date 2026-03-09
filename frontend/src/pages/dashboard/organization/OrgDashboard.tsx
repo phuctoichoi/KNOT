@@ -6,6 +6,8 @@ import AlertBanner from '@/components/alerts/AlertBanner'
 import { Megaphone, Trash2, Route, Phone, Mail, Loader2, CheckCircle, MapPin, FileText } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import api from '@/services/api'
+import { getDistance, formatDistance } from '@/utils/distance'
+import ReportDetailModal from '@/components/reports/ReportDetailModal'
 
 type Tab = 'relief' | 'reports'
 
@@ -15,6 +17,7 @@ export default function OrgDashboard() {
   const qc = useQueryClient()
   const [tab, setTab] = useState<Tab>('relief')
   const [showForm, setShowForm] = useState(false)
+  const [expanded, setExpanded] = useState<string | null>(null)
   const [form, setForm] = useState({
     title: '', content: '', route: '', province: '',
     district: '', contact_phone: '', contact_email: '',
@@ -37,7 +40,7 @@ export default function OrgDashboard() {
   // Query pending reports 
   const { data: reportsData } = useQuery({
     queryKey: ['reports', 'pending'],
-    queryFn: async () => { const { data } = await api.get('/reports?status=pending,verified&limit=20'); return data }
+    queryFn: async () => { const { data } = await api.get('/reports?status=pending,verified,in_progress&limit=20'); return data }
   })
   const reports = reportsData?.items || []
 
@@ -172,11 +175,11 @@ export default function OrgDashboard() {
                     </div>
                     <div>
                       <label className="label">Thời gian bắt đầu</label>
-                      <input className="input" value={form.starts_at} onChange={update('starts_at')} type="datetime-local" />
+                      <input title="Thời gian bắt đầu" className="input" value={form.starts_at} onChange={update('starts_at')} type="datetime-local" />
                     </div>
                     <div>
                       <label className="label">Hết hạn vào lúc</label>
-                      <input className="input" value={form.expires_at} onChange={update('expires_at')} type="datetime-local" />
+                      <input title="Hết hạn vào lúc" className="input" value={form.expires_at} onChange={update('expires_at')} type="datetime-local" />
                     </div>
                   </div>
                   {formError && <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-3 text-red-300 text-sm">{formError}</div>}
@@ -235,7 +238,7 @@ export default function OrgDashboard() {
             ) : (
               <div className="space-y-3">
                 {reports.map((r: any) => (
-                  <div key={r.id} className="card">
+                  <div key={r.id} className="card cursor-pointer hover:bg-gray-800/80 transition-colors" onClick={() => setExpanded(e => e === r.id ? null : r.id)}>
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -247,19 +250,12 @@ export default function OrgDashboard() {
                         <p className="font-semibold text-white">{r.title}</p>
                         <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
                           <MapPin size={11} />{r.address_text || r.province || 'Chưa rõ'}
+                          {user?.lat && user?.lng && r.lat && r.lng && (
+                            <span className="ml-2 text-red-400 font-medium whitespace-nowrap">
+                              ({formatDistance(getDistance(user.lat, user.lng, r.lat, r.lng))})
+                            </span>
+                          )}
                         </p>
-                      </div>
-                      <div className="flex gap-2">
-                        {r.status === 'pending' && (
-                          <button onClick={() => updateStatus.mutate({ id: r.id, status: 'verified' })} className="btn-primary text-sm py-1.5 px-3">
-                            <CheckCircle size={14} />Xác minh
-                          </button>
-                        )}
-                        {r.status === 'verified' && (
-                          <button onClick={() => updateStatus.mutate({ id: r.id, status: 'in_progress' })} className="btn-primary text-sm py-1.5 px-3">
-                            Xử lý
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -269,7 +265,22 @@ export default function OrgDashboard() {
           </div>
         )}
 
+        {/* Modal View for Expanded Report */}
+        {expanded && reports.find((r: any) => r.id === expanded) && (
+          <ReportDetailModal
+            report={reports.find((r: any) => r.id === expanded)}
+            userLat={user?.lat}
+            userLng={user?.lng}
+            onClose={() => setExpanded(null)}
+            actions={{
+              verify: (id: string) => updateStatus.mutate({ id, status: 'verified' }),
+              process: (id: string) => updateStatus.mutate({ id, status: 'in_progress' }),
+              resolve: (id: string) => updateStatus.mutate({ id, status: 'resolved' }),
+            }}
+          />
+        )}
       </div>
     </div>
   )
 }
+
