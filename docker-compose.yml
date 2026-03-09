@@ -1,0 +1,86 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: knot_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: knot_db
+      POSTGRES_USER: knot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-knotpassword}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/db.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knot -d knot_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: knot_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: knot_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minio_access_key}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minio_secret_key}
+    volumes:
+      - miniodata:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../infrastructure/docker/Dockerfile.backend
+    container_name: knot_backend
+    restart: unless-stopped
+    env_file: ./backend/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../infrastructure/docker/Dockerfile.frontend.dev
+    container_name: knot_frontend
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
