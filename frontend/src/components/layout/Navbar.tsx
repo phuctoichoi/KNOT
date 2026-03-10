@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
-import { Bell, Map, AlertTriangle, Heart, LogOut, LayoutDashboard, Globe } from 'lucide-react'
+import { Bell, Map, AlertTriangle, Heart, LogOut, LayoutDashboard, Globe, BarChart2 } from 'lucide-react'
 import api from '@/services/api'
 
 export default function Navbar() {
@@ -17,7 +17,7 @@ export default function Navbar() {
   }
 
   const handleLogout = async () => {
-    try { await api.post('/auth/logout') } catch {}
+    try { await api.post('/auth/logout') } catch { }
     logout()
     navigate('/')
   }
@@ -37,7 +37,7 @@ export default function Navbar() {
             <Link to="/dashboard/map" className="btn-ghost"><Map size={16} />{t('nav.map')}</Link>
           )}
           <Link to="/alerts" className="btn-ghost"><AlertTriangle size={16} />{t('nav.alerts')}</Link>
-          <Link to="/support" className="btn-ghost"><Heart size={16} />{t('nav.support')}</Link>
+          <Link to="/stats" className="btn-ghost"><BarChart2 size={16} />{t('nav.stats', 'Thống kê')}</Link>
         </div>
 
         {/* Right side */}
@@ -77,7 +77,7 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/login"    className="btn-ghost text-sm">{t('nav.login')}</Link>
+              <Link to="/login" className="btn-ghost text-sm">{t('nav.login')}</Link>
               <Link to="/register" className="btn-danger text-sm px-3 py-1.5">{t('nav.register')}</Link>
             </>
           )}

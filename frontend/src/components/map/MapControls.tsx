@@ -2,7 +2,7 @@ import { useMapStore } from '@/store/mapStore'
 import { useTranslation } from 'react-i18next'
 import { Filter } from 'lucide-react'
 
-const DISASTER_TYPES = ['flood','landslide','storm','fire','earthquake','infrastructure'] as const
+const DISASTER_TYPES = ['flood', 'landslide', 'storm', 'fire', 'earthquake', 'infrastructure', 'other'] as const
 
 export default function MapControls() {
   const { t } = useTranslation()
@@ -24,11 +24,10 @@ export default function MapControls() {
         <div className="flex flex-wrap gap-1.5">
           {DISASTER_TYPES.map((type) => (
             <button key={type} onClick={() => toggleType(type)}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-                filters.types.includes(type)
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${filters.types.includes(type)
                   ? 'bg-red-600 border-red-500 text-white'
                   : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200'
-              }`}>
+                }`}>
               {t(`report.disaster.${type}`)}
             </button>
           ))}

@@ -21,6 +21,34 @@ async def reports_summary(current_user=Depends(require_roles("admin")), db: Asyn
     """))).fetchone()
     return dict(row._mapping)
 
+@router.get("/public/reports/summary")
+async def public_reports_summary(db: AsyncSession = Depends(get_db)):
+    row = (await db.execute(text("""
+        SELECT
+            COUNT(*) FILTER (WHERE deleted_at IS NULL AND DATE(created_at) = CURRENT_DATE) AS today_count,
+            COUNT(*) FILTER (WHERE deleted_at IS NULL AND status = 'in_progress') AS in_progress
+        FROM reports
+    """))).fetchone()
+    return dict(row._mapping)
+
+
+@router.get("/public/reports/by-type")
+async def public_reports_by_type(db: AsyncSession = Depends(get_db)):
+    rows = (await db.execute(text("""
+        SELECT disaster_type, COUNT(*) AS count FROM reports
+        WHERE deleted_at IS NULL GROUP BY disaster_type ORDER BY count DESC
+    """))).fetchall()
+    return [{"type": r.disaster_type, "count": r.count} for r in rows]
+
+@router.get("/public/reports/trend")
+async def public_reports_trend(period: str = "daily", db: AsyncSession = Depends(get_db)):
+    trunc = {"daily": "day", "weekly": "week", "monthly": "month"}.get(period, "day")
+    rows = (await db.execute(text("""
+        SELECT DATE_TRUNC(:trunc, created_at) AS period, COUNT(*) AS count
+        FROM reports WHERE deleted_at IS NULL AND created_at > NOW() - INTERVAL '90 days'
+        GROUP BY period ORDER BY period
+    """), {"trunc": trunc})).fetchall()
+    return [{"period": str(r.period), "count": r.count} for r in rows]
 
 @router.get("/reports/by-type")
 async def reports_by_type(current_user=Depends(require_roles("admin")), db: AsyncSession = Depends(get_db)):

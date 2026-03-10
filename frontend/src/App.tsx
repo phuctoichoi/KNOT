@@ -5,9 +5,9 @@ import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 
 // Public pages
 import HomePage from '@/pages/public/HomePage'
-import MapPage from '@/pages/public/MapPage'
 import AlertsPage from '@/pages/public/AlertsPage'
 import SupportPage from '@/pages/public/SupportPage'
+import StatsPage from '@/pages/public/StatsPage'
 import LoginPage from '@/pages/public/LoginPage'
 import RegisterPage from '@/pages/public/RegisterPage'
 import VerifyEmailPage from '@/pages/public/VerifyEmailPage'
@@ -32,11 +32,11 @@ export default function App() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/"         element={<HomePage />} />
-      <Route path="/map"      element={<MapPage />} />
-      <Route path="/alerts"   element={<AlertsPage />} />
-      <Route path="/support"  element={<SupportPage />} />
-      <Route path="/login"    element={loggedIn ? <Navigate to="/dashboard" /> : <LoginPage />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/alerts" element={<AlertsPage />} />
+      <Route path="/support" element={<SupportPage />} />
+      <Route path="/stats" element={<StatsPage />} />
+      <Route path="/login" element={loggedIn ? <Navigate to="/dashboard" /> : <LoginPage />} />
       <Route path="/register" element={loggedIn ? <Navigate to="/dashboard" /> : <RegisterPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={loggedIn ? <Navigate to="/dashboard" /> : <ForgotPasswordPage />} />

@@ -3,9 +3,14 @@ import QuickReportForm from '@/components/reports/QuickReportForm'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Heart, AlertTriangle } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import api from '@/services/api'
 
 export default function HomePage() {
   const { t } = useTranslation()
+
+  // Fetch public stats for the homepage
+  const { data: summary } = useQuery({ queryKey: ['public', 'summary'], queryFn: async () => { const { data } = await api.get('/analytics/public/reports/summary'); return data } })
 
   return (
     <MainLayout>
@@ -37,24 +42,21 @@ export default function HomePage() {
             >
               {t('report.emergency_btn')}
             </button>
-            <Link to="/map" className="btn-outline py-4 px-8 text-xl rounded-2xl">
-              {t('map.view_full')}
-            </Link>
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-4 mb-16">
+          <div className="flex justify-center gap-6 mb-8">
             {[
-              { label: 'Báo cáo hôm nay', value: '—' },
-              { label: 'Đang xử lý', value: '—' },
-              { label: 'Điểm hỗ trợ', value: '—' },
+              { label: 'Báo cáo hôm nay', value: summary?.today_count ?? 0 },
+              { label: 'Đang xử lý', value: summary?.in_progress ?? 0 },
             ].map((stat) => (
-              <div key={stat.label} className="card text-center">
-                <p className="text-2xl font-bold text-white">{stat.value}</p>
-                <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+              <div key={stat.label} className="card text-center min-w-[150px] shadow-lg border border-gray-800">
+                <p className="text-3xl font-bold text-white mb-2">{stat.value}</p>
+                <p className="text-sm text-gray-500">{stat.label}</p>
               </div>
             ))}
           </div>
+
         </div>
       </section>
 
@@ -71,8 +73,6 @@ export default function HomePage() {
         </div>
       </section>
 
-
-
       {/* Support Locations CTA */}
       <section className="page-container pb-20">
         <div className="card flex items-center justify-between gap-4 flex-wrap">
@@ -86,6 +86,6 @@ export default function HomePage() {
           <Link to="/support" className="btn-primary">{t('support.title')} →</Link>
         </div>
       </section>
-    </MainLayout>
+    </MainLayout >
   )
 }
