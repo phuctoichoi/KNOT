@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
       await api.post('/auth/forgot-password', { email })
       setSuccess(true)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Thao tác thất bại. Vui lòng thử lại.')
+      setError(err?.response?.data?.detail || t('common.error_occurred'))
     } finally {
       setLoading(false)
     }
@@ -32,15 +32,16 @@ export default function ForgotPasswordPage() {
           <div className="text-center mb-8">
             <span className="text-red-500 text-4xl">⬡</span>
             <h1 className="text-2xl font-bold text-white mt-2">{t('auth.forgot_password')}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{t('auth.forgot_password')}</h1>
           </div>
 
           <div className="card">
             {success ? (
               <div className="text-center py-6 animate-in fade-in zoom-in duration-300">
                 <CheckCircle2 size={48} className="text-green-500 mx-auto mb-4" />
-                <h2 className="text-lg font-bold text-white mb-2">{t('auth.reset_success')}</h2>
-                <p className="text-gray-400 text-sm mb-6">
-                  Vui lòng kiểm tra hộp thư đến (bao gồm cả mục Spam) và làm theo hướng dẫn.
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('auth.reset_success')}</h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
+                  {t('auth.check_spam_folder')}
                 </p>
                 <Link to="/login" className="btn-outline w-full max-w-[200px] inline-flex items-center justify-center gap-2">
                   <ArrowLeft size={16} /> {t('auth.back_to_login')}
@@ -76,7 +77,7 @@ export default function ForgotPasswordPage() {
                 )}
 
                 <button type="submit" disabled={loading} className="btn-danger w-full py-3 mt-4">
-                  {loading ? 'Đang gửi...' : t('auth.send_reset_link')}
+                  {loading ? t('common.sending') : t('auth.send_reset_link')}
                 </button>
               </form>
             )}
@@ -84,7 +85,7 @@ export default function ForgotPasswordPage() {
 
           {!success && (
             <div className="text-center mt-6">
-              <Link to="/login" className="text-gray-400 hover:text-white text-sm transition-colors inline-flex items-center gap-2">
+              <Link to="/login" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors inline-flex items-center gap-2">
                 <ArrowLeft size={16} /> {t('auth.back_to_login')}
               </Link>
             </div>

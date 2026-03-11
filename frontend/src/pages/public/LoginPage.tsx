@@ -29,7 +29,7 @@ export default function LoginPage() {
         // specific auth flow blockers
         setError(err.response.data.detail)
       } else {
-        setError(err?.response?.data?.detail || 'Đăng nhập thất bại')
+        setError(err?.response?.data?.detail || t('auth.login_failed'))
       }
     } finally {
       setLoading(false)
@@ -37,12 +37,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <img src="/icons/logov2.png" alt="Logo" className="h-12 w-12 mx-auto mb-2 object-contain" />
-          <h1 className="text-2xl font-bold text-white">{t('auth.login_title')}</h1>
-          <p className="text-gray-400 mt-1 text-sm">KNOT – Kết Nối Ứng Phó Thiên Tai</p>
+          <img src="/icons/knot-logo.png" alt="Logo" className="h-12 w-auto mx-auto mb-2 object-contain dark:invert" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('auth.login_title')}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">{t('auth.login_subtitle')}</p>
         </div>
 
         <div className="card">
@@ -65,24 +65,24 @@ export default function LoginPage() {
             )}
 
             <div className="flex justify-end">
-              <Link to="/forgot-password" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
-                {t('auth.forgot_password')}
+              <Link to="/forgot-password" className="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                {t('auth.forgot_password_link')}
               </Link>
             </div>
 
             <button type="submit" disabled={loading} className="btn-danger w-full py-3">
               <LogIn size={18} />
-              {loading ? 'Đang đăng nhập...' : t('auth.login')}
+              {loading ? t('auth.logging_in') : t('auth.login')}
             </button>
           </form>
         </div>
 
         <div className="text-center mt-6 space-y-2">
           <p className="text-gray-400 text-sm">
-            Chưa có tài khoản?{' '}
+            {t('auth.dont_have_account')}{' '}
             <Link to="/register" className="text-red-400 hover:text-red-300 font-medium">{t('auth.register')}</Link>
           </p>
-          <Link to="/" className="text-gray-600 hover:text-gray-400 text-xs block">← Về trang chủ</Link>
+          <Link to="/" className="text-gray-600 hover:text-gray-400 text-xs block">← {t('nav.back_home')}</Link>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import MainLayout from '@/components/layout/MainLayout'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
-  Heart, Megaphone, Phone, Mail, MapPin, Route, Clock
+  Heart, Megaphone, Phone, Mail, MapPin, Route, Clock, BookOpen
 } from 'lucide-react'
 import api from '@/services/api'
 
@@ -20,12 +20,12 @@ export default function SupportPage() {
       <div className="page-container py-10">
         <div className="flex items-center gap-3 mb-6">
           <Heart className="text-red-400" size={28} />
-          <h1 className="section-title mb-0">Hỗ trợ & Cứu trợ</h1>
+          <h1 className="section-title mb-0">{t('support.page_title')}</h1>
         </div>
 
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Megaphone size={18} className="text-red-400" /> Thông báo Cứu trợ
+        <div className="col-span-1 lg:col-span-2 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <BookOpen size={18} className="text-blue-400" /> {t('support.guide')}
           </h2>
         </div>
 
@@ -34,7 +34,7 @@ export default function SupportPage() {
         ) : reliefPosts.length === 0 ? (
           <div className="card text-center py-16 text-gray-500">
             <Megaphone size={40} className="mx-auto mb-3 text-gray-700" />
-            <p>Chưa có thông báo cứu trợ nào</p>
+            <p>{t('support.no_notices')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -45,7 +45,10 @@ export default function SupportPage() {
                     <Megaphone size={18} className="text-red-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-white text-sm leading-snug">{p.title}</h3>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug">{p.title}</h3>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{p.desc}</p>
+                    </div>
                     {p.org_name && (
                       <p className="text-xs text-red-400 mt-0.5">🏢 {p.org_name}</p>
                     )}
@@ -70,7 +73,7 @@ export default function SupportPage() {
                   {p.starts_at && (
                     <div className="flex items-center gap-1.5">
                       <Clock size={12} className="shrink-0" />
-                      <span>Bắt đầu: {new Date(p.starts_at).toLocaleString('vi-VN')}</span>
+                      <span>{t('support.starts_at')}: {new Date(p.starts_at).toLocaleString('vi-VN')}</span>
                     </div>
                   )}
                 </div>

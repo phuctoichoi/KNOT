@@ -21,17 +21,16 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto">
           <span className="inline-flex items-center gap-2 text-red-400 text-sm font-medium mb-4">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            Hệ thống ứng phó thiên tai trực tuyến
+            {t('home.hero_subtitle')}
           </span>
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight">
+          <h1 className="text-5xl md:text-7xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
             <div className="flex items-center justify-center gap-4 mb-4">
-              <img src="/icons/logov2.png" alt="Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain drop-shadow-2xl" />
-              <span className="text-gradient">KNOT</span>
+              <img src="/icons/knot-logo.png" alt="KNOT Logo" className="h-20 md:h-28 lg:h-32 object-contain drop-shadow-md dark:invert" />
             </div>
-            Dẫn đầu trong Ứng phó Thiên tai
+            {t('home.hero_title')}
           </h1>
-          <p className="text-gray-400 text-lg mb-10">
-            Báo cáo, theo dõi và phối hợp ứng phó thiên tai trên toàn Việt Nam
+          <p className="text-gray-600 dark:text-gray-400 text-lg mb-10">
+            {t('home.hero_desc')}
           </p>
 
           {/* Primary Emergency Button */}
@@ -47,12 +46,12 @@ export default function HomePage() {
           {/* Stats row */}
           <div className="flex justify-center gap-6 mb-8">
             {[
-              { label: 'Báo cáo hôm nay', value: summary?.today_count ?? 0 },
-              { label: 'Đang xử lý', value: summary?.in_progress ?? 0 },
+              { label: t('home.stats_today'), value: summary?.today_count ?? 0 },
+              { label: t('home.stats_in_progress'), value: summary?.in_progress ?? 0 },
             ].map((stat) => (
-              <div key={stat.label} className="card text-center min-w-[150px] shadow-lg border border-gray-800">
-                <p className="text-3xl font-bold text-white mb-2">{stat.value}</p>
-                <p className="text-sm text-gray-500">{stat.label}</p>
+              <div key={stat.label} className="card text-center min-w-[150px] shadow-lg border border-gray-200 dark:border-gray-800">
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{stat.value}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -65,7 +64,7 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto">
           <h2 className="section-title flex items-center gap-2">
             <AlertTriangle className="text-red-400" size={24} />
-            Gửi báo cáo sự cố
+            {t('home.quick_report_title')}
           </h2>
           <div className="card">
             <QuickReportForm />
@@ -79,8 +78,8 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <Heart className="text-green-400" size={28} />
             <div>
-              <p className="font-semibold text-white">Tìm điểm hỗ trợ gần bạn</p>
-              <p className="text-gray-400 text-sm">Thực phẩm, nước, y tế và tình nguyện viên</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{t('home.support_title')}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">{t('home.support_desc')}</p>
             </div>
           </div>
           <Link to="/support" className="btn-primary">{t('support.title')} →</Link>

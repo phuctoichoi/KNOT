@@ -58,18 +58,18 @@ export default function ProfilePage() {
       return res.data
     },
     onSuccess: (res) => {
-      setPwdSuccess('Đổi mật khẩu thành công!')
+      setPwdSuccess(t('profile.pwd_success'))
       setPwdForm({ current_password: '', new_password: '', confirm_password: '' })
       setTimeout(() => setPwdSuccess(''), 4000)
     },
     onError: (err: any) => {
-      setPwdError(err.response?.data?.detail || 'Lỗi khi đổi mật khẩu')
+      setPwdError(err.response?.data?.detail || t('profile.pwd_error'))
     }
   })
 
   const handleGPS = () => {
     if (!navigator.geolocation) {
-      setGpsError('Trình duyệt không hỗ trợ GPS')
+      setGpsError(t('profile.no_gps_support'))
       return
     }
     setGpsLoading(true)
@@ -94,7 +94,7 @@ export default function ProfilePage() {
         setGpsLoading(false)
       },
       (err) => {
-        setGpsError(err.message || 'Không thể lấy vị trí GPS')
+        setGpsError(err.message || t('profile.gps_failed'))
         setGpsLoading(false)
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -120,12 +120,12 @@ export default function ProfilePage() {
     setPwdSuccess('')
 
     if (pwdForm.new_password !== pwdForm.confirm_password) {
-      setPwdError('Mật khẩu nhập lại không khớp')
+      setPwdError(t('profile.pwd_mismatch'))
       return
     }
 
     if (pwdForm.new_password.length < 8) {
-      setPwdError('Mật khẩu mới phải có ít nhất 8 ký tự')
+      setPwdError(t('profile.pwd_too_short'))
       return
     }
 
@@ -136,7 +136,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <AlertBanner />
       <Navbar />
       <div className="page-container py-8 max-w-2xl space-y-8">
@@ -145,7 +145,7 @@ export default function ProfilePage() {
             {user?.full_name?.charAt(0) || 'U'}
           </div>
           <div>
-            <h1>Cài đặt hồ sơ</h1>
+            <h1>{t('profile.settings_title')}</h1>
             <p>{user?.email}</p>
           </div>
         </div>
@@ -153,53 +153,53 @@ export default function ProfilePage() {
         {/* Profile Info Form */}
         <form onSubmit={handleSubmitProfile} className="space-y-6">
           <div className="card space-y-4">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <User size={16} className="text-blue-400" /> Thông tin cá nhân
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <User size={16} className="text-blue-400" /> {t('profile.personal_info')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="label">Họ và tên</label>
-                <input className="input" value={form.full_name} placeholder="Nhập họ và tên"
+                <label className="label">{t('profile.full_name')}</label>
+                <input className="input" value={form.full_name} placeholder={t('profile.full_name_placeholder')}
                   onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} required />
               </div>
               <div>
-                <label className="label">Số điện thoại</label>
+                <label className="label">{t('profile.phone')}</label>
                 <input className="input" type="tel" value={form.phone}
-                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="0xxx-xxx-xxx" />
+                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder={t('profile.phone_placeholder')} />
               </div>
             </div>
             {isOrg && (
               <div>
-                <label className="label">Tên tổ chức</label>
-                <input className="input" value={form.organization_name} placeholder="Nhập tên tổ chức"
+                <label className="label">{t('profile.org_name')}</label>
+                <input className="input" value={form.organization_name} placeholder={t('profile.org_name_placeholder')}
                   onChange={e => setForm(f => ({ ...f, organization_name: e.target.value }))} />
               </div>
             )}
           </div>
 
           <div className="card space-y-4">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <MapPin size={16} className="text-green-400" /> Vị trí
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <MapPin size={16} className="text-green-400" /> {t('profile.location')}
             </h3>
 
             <button type="button" onClick={handleGPS} disabled={gpsLoading}
               className="btn-primary w-full md:w-auto">
               {gpsLoading ? (
-                <><Loader2 size={16} className="animate-spin" /> Đang lấy vị trí...</>
+                <><Loader2 size={16} className="animate-spin" /> {t('profile.getting_location')}</>
               ) : (
-                <><MapPin size={16} /> Sử dụng vị trí hiện tại</>
+                <><MapPin size={16} /> {t('profile.use_current_location')}</>
               )}
             </button>
 
             {gpsError && <p className="text-red-400 text-sm">{gpsError}</p>}
 
             {gps && (
-              <div className="bg-gray-800/50 rounded-lg p-4 space-y-2">
+              <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg p-4 space-y-2">
                 <div className="flex items-center gap-4 text-sm">
-                  <span className="text-gray-400">Lat:</span>
-                  <span className="text-white font-mono">{gps.lat.toFixed(5)}</span>
-                  <span className="text-gray-400 ml-2">Lng:</span>
-                  <span className="text-white font-mono">{gps.lng.toFixed(5)}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Lat:</span>
+                  <span className="text-gray-900 dark:text-white font-mono">{gps.lat.toFixed(5)}</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2">Lng:</span>
+                  <span className="text-gray-900 dark:text-white font-mono">{gps.lng.toFixed(5)}</span>
                 </div>
                 {address && (
                   <div className="flex items-start gap-2 mt-2">
@@ -212,14 +212,14 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="label">Tỉnh / Thành phố</label>
+                <label className="label">{t('profile.province')}</label>
                 <input className="input" value={form.province}
-                  onChange={e => setForm(f => ({ ...f, province: e.target.value }))} placeholder="VD: Cần Thơ" />
+                  onChange={e => setForm(f => ({ ...f, province: e.target.value }))} placeholder={t('profile.province_placeholder')} />
               </div>
               <div>
-                <label className="label">Quận / Huyện</label>
+                <label className="label">{t('profile.district')}</label>
                 <input className="input" value={form.district}
-                  onChange={e => setForm(f => ({ ...f, district: e.target.value }))} placeholder="VD: Ninh Kiều" />
+                  onChange={e => setForm(f => ({ ...f, district: e.target.value }))} placeholder={t('profile.district_placeholder')} />
               </div>
             </div>
           </div>
@@ -227,41 +227,41 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <button type="submit" disabled={saveMutation.isPending} className="btn-primary">
               {saveMutation.isPending ? (
-                <><Loader2 size={16} className="animate-spin" /> Đang lưu...</>
+                <><Loader2 size={16} className="animate-spin" /> {t('profile.saving')}</>
               ) : (
-                <><Save size={16} /> Lưu thay đổi</>
+                <><Save size={16} /> {t('profile.save_changes')}</>
               )}
             </button>
-            {saved && <span className="text-green-400 text-sm animate-pulse">✓ Đã lưu thành công!</span>}
-            {saveMutation.isError && <span className="text-red-400 text-sm">Lỗi không thể lưu!</span>}
+            {saved && <span className="text-green-400 text-sm animate-pulse">✓ {t('profile.saved')}</span>}
+            {saveMutation.isError && <span className="text-red-400 text-sm">{t('profile.save_error')}</span>}
           </div>
         </form>
 
         {/* Change Password Form */}
         <div className="card space-y-4 border border-red-900/40">
-          <h3 className="font-semibold text-white flex items-center gap-2">
-            <Lock size={16} className="text-red-400" /> Đổi mật khẩu
+          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Lock size={16} className="text-red-400" /> {t('profile.change_password')}
           </h3>
-          <p className="text-xs text-gray-400 flex items-center gap-1">
-            <KeyRound size={12} /> Bạn chỉ có thể đổi mật khẩu 7 ngày 1 lần.
+          <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+            <KeyRound size={12} /> {t('profile.password_limit')}
           </p>
 
           <form onSubmit={handleSubmitPassword} className="space-y-4 mt-2">
             <div>
-              <label className="label">Mật khẩu hiện tại</label>
+              <label className="label">{t('profile.current_password')}</label>
               <input type="password" required className="input"
                 value={pwdForm.current_password}
                 onChange={e => setPwdForm({ ...pwdForm, current_password: e.target.value })} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="label">Mật khẩu mới</label>
+                <label className="label">{t('profile.new_password')}</label>
                 <input type="password" required className="input" minLength={8}
                   value={pwdForm.new_password}
                   onChange={e => setPwdForm({ ...pwdForm, new_password: e.target.value })} />
               </div>
               <div>
-                <label className="label">Xác nhận mật khẩu mới</label>
+                <label className="label">{t('profile.confirm_password')}</label>
                 <input type="password" required className="input" minLength={8}
                   value={pwdForm.confirm_password}
                   onChange={e => setPwdForm({ ...pwdForm, confirm_password: e.target.value })} />
@@ -274,9 +274,9 @@ export default function ProfilePage() {
             <div className="pt-2">
               <button type="submit" disabled={pwdMutation.isPending} className="btn-danger w-full md:w-auto">
                 {pwdMutation.isPending ? (
-                  <><Loader2 size={16} className="animate-spin" /> Đang xử lý...</>
+                  <><Loader2 size={16} className="animate-spin" /> {t('common.processing')}</>
                 ) : (
-                  <><Lock size={16} /> Cập nhật mật khẩu</>
+                  <><Lock size={16} /> {t('profile.update_password')}</>
                 )}
               </button>
             </div>

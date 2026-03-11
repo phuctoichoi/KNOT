@@ -9,7 +9,7 @@ export default function MapPage() {
   const { t } = useTranslation()
 
   return (
-    <div className="flex flex-col h-screen bg-gray-950">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
       <AlertBanner />
       <Navbar />
       <div className="flex flex-1 overflow-hidden relative w-full pt-4 px-4 pb-4 gap-4">

@@ -42,15 +42,15 @@ function OverviewTab() {
   const { data: trend = [] } = useQuery({ queryKey: ['analytics', 'trend'], queryFn: async () => { const { data } = await api.get('/analytics/reports/trend'); return data } })
 
   const CARDS = [
-    { label: t('dashboard.stats.total_reports', 'Tổng báo cáo'), value: stats?.total_reports ?? 0, icon: <FileText size={20} className="text-blue-400" />, color: 'text-blue-400' },
-    { label: t('dashboard.stats.pending_reports', 'Chờ xử lý'), value: stats?.pending_reports ?? 0, icon: <RefreshCw size={20} className="text-yellow-400" />, color: 'text-yellow-400' },
-    { label: t('dashboard.stats.active_alerts', 'Cảnh báo hoạt động'), value: stats?.active_alerts ?? 0, icon: <Bell size={20} className="text-red-400" />, color: 'text-red-400' },
-    { label: t('dashboard.stats.total_users', 'Tổng người dùng'), value: stats?.total_users ?? 0, icon: <Users size={20} className="text-indigo-400" />, color: 'text-indigo-400' },
-    { label: t('dashboard.stats.pending_users', 'Chờ duyệt tài khoản'), value: stats?.pending_users ?? 0, icon: <Shield size={20} className="text-orange-400" />, color: 'text-orange-400' },
-    { label: t('dashboard.stats.active_offers', 'Điểm hỗ trợ hoạt động'), value: stats?.active_offers ?? 0, icon: <Activity size={20} className="text-green-400" />, color: 'text-green-400' },
+    { label: t('dashboard.stats.total_reports'), value: stats?.total_reports ?? 0, icon: <FileText size={20} className="text-blue-400" />, color: 'text-blue-400' },
+    { label: t('dashboard.stats.pending_reports'), value: stats?.pending_reports ?? 0, icon: <RefreshCw size={20} className="text-yellow-400" />, color: 'text-yellow-400' },
+    { label: t('dashboard.stats.active_alerts'), value: stats?.active_alerts ?? 0, icon: <Bell size={20} className="text-red-400" />, color: 'text-red-400' },
+    { label: t('dashboard.stats.total_users'), value: stats?.total_users ?? 0, icon: <Users size={20} className="text-indigo-400" />, color: 'text-indigo-400' },
+    { label: t('dashboard.stats.pending_users'), value: stats?.pending_users ?? 0, icon: <Shield size={20} className="text-orange-400" />, color: 'text-orange-400' },
+    { label: t('dashboard.stats.active_offers'), value: stats?.active_offers ?? 0, icon: <Activity size={20} className="text-green-400" />, color: 'text-green-400' },
   ]
 
-  const emptyPie = [{ name: t('common.no_data', 'Chưa có dữ liệu'), count: 1, type: 'empty' }]
+  const emptyPie = [{ name: t('common.no_data'), count: 1, type: 'empty' }]
   const totalReportsByType = byType.reduce((acc: number, curr: any) => acc + curr.count, 0)
   const pieData = byType.length > 0 
     ? byType.map((d: any) => ({ ...d, name: t(`report.type.${d.type}`, d.type) })) 
@@ -84,7 +84,7 @@ function OverviewTab() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card">
-          <h3 className="font-semibold text-white mb-6">{t('admin.reports_by_type', 'Báo cáo theo loại thiên tai')}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-6">{t('admin.reports_by_type')}</h3>
           <ResponsiveContainer width="100%" height={320}>
             <PieChart>
               <Pie 
@@ -118,15 +118,15 @@ function OverviewTab() {
         </div>
 
         <div className="card">
-          <h3 className="font-semibold text-white mb-6">{t('admin.report_trend', 'Xu hướng báo cáo (90 ngày)')}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-6">{t('admin.report_trend')}</h3>
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
               <XAxis dataKey="day" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} tickLine={false} axisLine={false} dy={10} />
               <YAxis allowDecimals={false} stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} tickLine={false} axisLine={false} dx={-10} />
               <Tooltip
-                labelFormatter={(label) => `${t('common.date', 'Ngày')}: ${label}`}
-                formatter={(value: number) => [value, t('dashboard.stats.report_count', 'Số lượng báo cáo')]}
+                labelFormatter={(label) => `${t('common.date')}: ${label}`}
+                formatter={(value: number) => [value, t('dashboard.stats.report_count')]}
                 contentStyle={{ backgroundColor: 'rgba(17, 24, 39, 0.95)', borderColor: '#374151', borderRadius: '8px', color: '#fff', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)' }}
                 itemStyle={{ color: '#EF4444', fontWeight: 'bold' }}
                 cursor={{ stroke: '#4B5563', strokeWidth: 1, strokeDasharray: '4 4' }}
@@ -134,7 +134,7 @@ function OverviewTab() {
               <Line 
                 type="monotone" 
                 dataKey="count" 
-                name={t('dashboard.stats.report_count', 'Số lượng báo cáo')} 
+                name={t('dashboard.stats.report_count')} 
                 stroke="#EF4444" 
                 strokeWidth={3}
                 dot={{ r: 4, fill: '#111827', strokeWidth: 2, stroke: '#EF4444' }} 
@@ -152,6 +152,7 @@ function OverviewTab() {
 
 // ─── Users Tab ──────────────────────────────────────────────────────────────
 function UsersTab() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [isAdding, setIsAdding] = useState(false)
@@ -201,7 +202,7 @@ function UsersTab() {
   })
 
   const handleDelete = (u: any) => {
-    if (confirm(`Bạn có chắc muốn xóa người dùng ${u.full_name} (${u.email})?`)) {
+    if (confirm(t('common.confirm_delete_user', { name: u.full_name, email: u.email }))) {
       deleteUserMutation.mutate(u.id)
     }
   }
@@ -226,34 +227,34 @@ function UsersTab() {
       <div className="flex flex-col sm:flex-row gap-3 justify-between">
         <input
           className="input w-full sm:max-w-sm"
-          placeholder="Tìm theo tên hoặc email..."
+          placeholder={t('admin.search_placeholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
         <button onClick={() => setIsAdding(true)} className="btn-primary shrink-0">
-          + Thêm thành viên
+          {t('admin.add_member')}
         </button>
       </div>
 
       {isAdding && (
-        <div className="card border-blue-500/30 bg-gray-900/90 mb-6 p-5">
-          <h3 className="text-lg font-semibold text-white mb-4">Thêm thành viên mới</h3>
+        <div className="card border-blue-500/30 bg-blue-50/50 dark:bg-gray-900/90 mb-6 p-5">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('admin.add_member_title')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <input className="input" placeholder="Họ và tên" value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} />
-            <input className="input" placeholder="Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-            <input className="input" type="password" placeholder="Mật khẩu" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
-            <select className="input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} title="Vai trò">
-              <option value="citizen">Công dân (Citizen)</option>
-              <option value="volunteer">Tình nguyện viên</option>
-              <option value="organization">Tổ chức</option>
-              <option value="moderator">Điều phối viên (Mod)</option>
-              <option value="admin">Quản trị viên (Admin)</option>
+            <input className="input" placeholder={t('profile.full_name')} value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} />
+            <input className="input" placeholder={t('auth.email')} value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+            <input className="input" type="password" placeholder={t('auth.password')} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
+            <select className="input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} title={t('common.role')}>
+              <option value="citizen">{t('role.citizen')} (Citizen)</option>
+              <option value="volunteer">{t('role.volunteer')}</option>
+              <option value="organization">{t('role.organization')}</option>
+              <option value="moderator">{t('role.moderator')} (Mod)</option>
+              <option value="admin">{t('role.admin')} (Admin)</option>
             </select>
           </div>
           <div className="flex gap-3 justify-end">
-            <button onClick={() => setIsAdding(false)} className="btn-ghost">Hủy</button>
+            <button onClick={() => setIsAdding(false)} className="btn-ghost">{t('common.cancel')}</button>
             <button onClick={() => addUserMutation.mutate()} disabled={addUserMutation.isPending} className="btn-primary">
-              {addUserMutation.isPending ? 'Đang tạo...' : 'Tạo và Phê duyệt'}
+              {addUserMutation.isPending ? t('common.creating') : t('admin.create_and_approve')}
             </button>
           </div>
         </div>
@@ -261,38 +262,38 @@ function UsersTab() {
 
       {pendingOrgs.length > 0 && !isAdding && (
         <div className="card mb-6 border-orange-500/30">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Shield size={20} className="text-orange-400" /> Tổ chức chờ phê duyệt ({pendingOrgs.length})
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <Shield size={20} className="text-orange-400" /> {t('dashboard.pending_orgs_title')} ({pendingOrgs.length})
           </h3>
           <div className="overflow-x-auto">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Tổ chức</th><th>Email</th><th>Ngày đăng ký</th><th>Hành động</th>
+                  <th>{t('role.organization')}</th><th>{t('auth.email')}</th><th>{t('common.created_at')}</th><th>{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {pendingOrgs.map((u: any) => (
                   <tr key={u.id}>
-                    <td className="text-white font-medium">
+                    <td className="text-gray-900 dark:text-white font-medium">
                       {u.organization_name || u.full_name}
-                      <span className="block text-xs text-gray-400 mt-0.5">Người đại diện: {u.full_name}</span>
+                      <span className="block text-xs text-gray-600 dark:text-gray-400 mt-0.5">{t('admin.representative')} {u.full_name}</span>
                     </td>
-                    <td className="text-gray-400">{u.email}</td>
+                    <td className="text-gray-600 dark:text-gray-400">{u.email}</td>
                     <td className="text-gray-500">{u.created_at?.slice(0, 10)}</td>
                     <td>
                       <div className="flex gap-2">
                         <button onClick={() => mutate.mutate({ id: u.id, status: 'active' })}
                           className="text-xs px-3 py-1.5 rounded bg-green-500/20 text-green-300 hover:bg-green-500/40 transition-colors">
-                          Phê duyệt
+                          {t('common.approve')}
                         </button>
                         <button onClick={() => mutate.mutate({ id: u.id, status: 'rejected' })}
                           className="text-xs px-3 py-1.5 rounded bg-red-500/20 text-red-300 hover:bg-red-500/40 transition-colors">
-                          Từ chối
+                          {t('common.reject')}
                         </button>
                         <button onClick={() => handleDelete(u)}
                           className="text-xs px-3 py-1.5 rounded bg-red-500/20 text-red-500 hover:bg-red-500/40 transition-colors"
-                          title="Xóa vĩnh viễn">
+                          title={t('common.delete_permanently')}>
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -309,20 +310,20 @@ function UsersTab() {
         <table className="data-table">
           <thead>
             <tr>
-              {['Họ tên', 'Email', 'Vai trò', 'Trạng thái', 'Ngày tạo', 'Hành động'].map(h => (
+              {[t('profile.full_name'), t('auth.email'), t('common.role'), t('common.status'), t('common.created_at'), t('common.actions')].map(h => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={6} className="p-6 text-center text-gray-500">Đang tải...</td></tr>
+              <tr><td colSpan={6} className="p-6 text-center text-gray-500">{t('common.loading')}</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan={6} className="p-6 text-center text-gray-500">Không có người dùng nào</td></tr>
+              <tr><td colSpan={6} className="p-6 text-center text-gray-500">{t('common.no_data')}</td></tr>
             ) : users.map((u: any) => (
               <tr key={u.id}>
-                <td className="text-white font-medium">{u.full_name}</td>
-                <td className="text-gray-400">{u.email}</td>
+                <td className="text-gray-900 dark:text-white font-medium">{u.full_name}</td>
+                <td className="text-gray-600 dark:text-gray-400">{u.email}</td>
                 <td className="px-4 py-3">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${roleBadge[u.role] ?? ''}`}>{u.role}</span>
                 </td>
@@ -335,19 +336,19 @@ function UsersTab() {
                     {u.status !== 'active' && (
                       <button onClick={() => mutate.mutate({ id: u.id, status: 'active' })}
                         className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-300 hover:bg-green-500/40 transition-colors">
-                        Duyệt
+                        {t('common.approve')}
                       </button>
                     )}
                     {u.status !== 'suspended' && (
                       <button onClick={() => mutate.mutate({ id: u.id, status: 'suspended' })}
                         className="text-xs px-2 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/40 transition-colors">
-                        Vô hiệu
+                        {t('common.suspend')}
                       </button>
                     )}
                     {u.role !== 'moderator' && (
                       <button onClick={() => mutate.mutate({ id: u.id, role: 'moderator' })}
                         className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 transition-colors">
-                        → Mod
+                        {t('admin.make_mod')}
                       </button>
                     )}
                     {canManage(u.role, u.id) && (
@@ -372,6 +373,7 @@ function UsersTab() {
 
 // ─── Alerts Tab ─────────────────────────────────────────────────────────────
 function AlertsTab() {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [form, setForm] = useState({ title: '', body: '', severity: 'warning', province: '' })
 
@@ -401,47 +403,47 @@ function AlertsTab() {
     <div className="space-y-6">
       {/* Broadcast form */}
       <div className="card space-y-4">
-        <h3 className="font-semibold text-white flex items-center gap-2"><AlertTriangle size={16} className="text-red-400" /> Phát cảnh báo mới</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><AlertTriangle size={16} className="text-red-400" /> {t('admin.new_alert_title')}</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <input className="input" placeholder="Tiêu đề cảnh báo (TV)" value={form.title}
+          <input className="input" placeholder={t('admin.broadcast_placeholder')} value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
-          <select className="input" value={form.severity} title="Mức độ khẩn cấp"
+          <select className="input" value={form.severity} title={t('report.severity')}
             onChange={e => setForm(f => ({ ...f, severity: e.target.value }))}>
-            <option value="info">ℹ️ Thông tin</option>
-            <option value="warning">⚠️ Cảnh báo</option>
-            <option value="danger">🔴 Nguy hiểm</option>
-            <option value="critical">🚨 Khẩn cấp</option>
+            <option value="info">ℹ️ {t('alert.severity.info')}</option>
+            <option value="warning">⚠️ {t('alert.severity.warning')}</option>
+            <option value="danger">🔴 {t('alert.severity.danger')}</option>
+            <option value="critical">🚨 {t('alert.severity.critical')}</option>
           </select>
-          <textarea className="input lg:col-span-2 h-20 resize-none" placeholder="Nội dung cảnh báo..."
+          <textarea className="input lg:col-span-2 h-20 resize-none" placeholder={t('admin.body_placeholder')}
             value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} />
-          <input className="input" placeholder="Tỉnh/thành (để trống = toàn quốc)" value={form.province}
+          <input className="input" placeholder={`${t('profile.province')} (${t('common.all')})`} value={form.province}
             onChange={e => setForm(f => ({ ...f, province: e.target.value }))} />
           <button onClick={() => broadcast.mutate()} disabled={!form.title || !form.body || broadcast.isPending}
             className="btn-danger flex items-center justify-center gap-2">
-            <Bell size={16} /> Phát cảnh báo
+            <Bell size={16} /> {t('admin.broadcast_btn')}
           </button>
         </div>
       </div>
 
       {/* Active alerts list */}
       <div className="space-y-3">
-        <h3 className="font-semibold text-white">Cảnh báo đang hoạt động ({alerts.filter((a: any) => a.is_active).length})</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white">{t('admin.active_alerts_count', { count: alerts.filter((a: any) => a.is_active).length })}</h3>
         {alerts.filter((a: any) => a.is_active).length === 0 && (
-          <div className="card text-center py-8 text-gray-500">Không có cảnh báo nào đang hoạt động</div>
+          <div className="card text-center py-8 text-gray-500">{t('admin.no_active_alerts')}</div>
         )}
         {alerts.filter((a: any) => a.is_active).map((a: any) => (
           <div key={a.id} className="card flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className={`text-xs px-2 py-0.5 rounded-full ${SEV_COLORS[a.severity] ?? ''}`}>{a.severity.toUpperCase()}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${SEV_COLORS[a.severity] ?? ''}`}>{t(`alert.severity.${a.severity}`).toUpperCase()}</span>
                 {a.province && <span className="text-xs text-gray-500">📍 {a.province}</span>}
               </div>
-              <p className="text-white font-medium">{a.title}</p>
-              <p className="text-gray-400 text-sm mt-1">{a.body}</p>
+              <p className="text-gray-900 dark:text-white font-medium">{a.title}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{a.body}</p>
             </div>
             <button onClick={() => deactivate.mutate(a.id)}
               className="shrink-0 text-xs px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors">
-              Tắt
+              {t('common.deactivate')}
             </button>
           </div>
         ))}
@@ -452,6 +454,7 @@ function AlertsTab() {
 
 // ─── Logs Tab ────────────────────────────────────────────────────────────────
 function LogsTab() {
+  const { t } = useTranslation()
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ['admin', 'logs'],
     queryFn: async () => {
@@ -463,26 +466,26 @@ function LogsTab() {
   return (
     <div className="card overflow-hidden p-0">
       <div className="px-4 py-3 border-b border-gray-800">
-        <h3 className="font-semibold text-white flex items-center gap-2"><ClipboardList size={15} /> Activity Log (50 gần nhất)</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><ClipboardList size={15} /> {t('admin.last_50_logs')}</h3>
       </div>
       <div className="overflow-x-auto max-h-[560px] overflow-y-auto">
         <table className="data-table">
           <thead>
             <tr>
-              {['Thời gian', 'Người dùng', 'Hành động', 'Đối tượng', 'IP'].map(h => (
+              {[t('common.time'), t('common.users'), t('common.actions'), t('common.target'), t('common.ip')].map(h => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={5} className="p-6 text-center text-gray-500">Đang tải...</td></tr>
+              <tr><td colSpan={5} className="p-6 text-center text-gray-500">{t('common.loading')}</td></tr>
             ) : logs.length === 0 ? (
-              <tr><td colSpan={5} className="p-6 text-center text-gray-500">Chưa có activity log nào</td></tr>
+              <tr><td colSpan={5} className="p-6 text-center text-gray-500">{t('admin.no_logs')}</td></tr>
             ) : logs.map((l: any) => (
-              <tr key={l.id} className="hover:bg-gray-800/40 transition-colors">
+              <tr key={l.id} className="hover:bg-gray-100 dark:hover:bg-gray-800/40 transition-colors">
                 <td className="px-4 py-2 text-gray-500 whitespace-nowrap">{l.created_at?.slice(0, 19).replace('T', ' ')}</td>
-                <td className="px-4 py-2 text-gray-300">{l.user_id?.slice(0, 8) ?? '—'}...</td>
+                <td className="px-4 py-2 text-gray-900 dark:text-gray-300">{l.user_id?.slice(0, 8) ?? '—'}...</td>
                 <td className="px-4 py-2">
                   <span className="text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">{l.action_type}</span>
                 </td>
@@ -504,14 +507,14 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('overview')
 
   const TABS: { key: Tab; label: string; icon: any }[] = [
-    { key: 'overview', label: 'Tổng quan', icon: Activity },
-    { key: 'users', label: 'Người dùng', icon: Users },
-    { key: 'alerts', label: 'Cảnh báo', icon: Bell },
-    { key: 'logs', label: 'Activity Log', icon: ClipboardList },
+    { key: 'overview', label: t('common.overview'), icon: Activity },
+    { key: 'users', label: t('common.users'), icon: Users },
+    { key: 'alerts', label: t('common.alerts'), icon: Bell },
+    { key: 'logs', label: t('common.activity_log'), icon: ClipboardList },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-transparent">
       <AlertBanner />
       <Navbar />
       <div className="page-container py-8">
@@ -523,13 +526,13 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-1 mb-6 bg-gray-900 p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-900 p-1 rounded-xl w-fit">
           {TABS.map(({ key, label, icon: Icon }) => (
             <button key={key} onClick={() => setTab(key)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 tab === key
                   ? 'bg-red-600 text-white shadow'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800'
               }`}>
               <Icon size={14} /> {label}
             </button>

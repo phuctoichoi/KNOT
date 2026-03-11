@@ -70,27 +70,27 @@ export default function VolunteerDashboard() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white">
       <AlertBanner />
       <Navbar />
       <div className="page-container py-8">
-        <div className="greeting-header">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1>{t('dashboard.greeting', { name: user?.full_name })}</h1>
-            <p>{t('dashboard.volunteer.title')}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('dashboard.volunteer.title')}</h1>
+            <p className="text-gray-600 dark:text-gray-400">{t('dashboard.greeting', { name: user?.full_name })}</p>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <h2 className="text-lg font-semibold text-white">{t('dashboard.reports_pending')}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('dashboard.reports_pending')}</h2>
           {availableProvinces.length > 0 && (
             <select
-              title={t('common.filter_by_province', 'Lọc theo tỉnh/thành')}
+              title={t('common.filter_by_province')}
               value={selectedProvince}
               onChange={e => setSelectedProvince(e.target.value)}
               className="select w-full sm:w-auto text-sm py-1.5"
             >
-              <option value="all">Tất cả khu vực</option>
+              <option value="all">{t('common.all_regions')}</option>
               {availableProvinces.map(p => (
                 <option key={p} value={p}>{p}</option>
               ))}
@@ -99,13 +99,13 @@ export default function VolunteerDashboard() {
         </div>
 
         {reports.length === 0 ? (
-          <div className="card text-center py-10 text-gray-500">{t('notif.no_notifs')}</div>
+          <div className="card text-center py-10 text-gray-500">{t('dashboard.no_reports')}</div>
         ) : filteredReports.length === 0 ? (
-          <div className="card text-center py-10 text-gray-500">Không có báo cáo ở khu vực này</div>
+          <div className="card text-center py-10 text-gray-500">{t('dashboard.no_reports_in_region')}</div>
         ) : (
           <div className="space-y-3">
             {filteredReports.map((r: any) => (
-              <div key={r.id} className="card cursor-pointer hover:bg-gray-800/80 transition-colors" onClick={() => setExpanded(e => e === r.id ? null : r.id)}>
+              <div key={r.id} className="card cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors" onClick={() => setExpanded(e => e === r.id ? null : r.id)}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -114,9 +114,9 @@ export default function VolunteerDashboard() {
                       </span>
                       <span className={`badge badge-${r.status}`}>{t(`report.status.${r.status}`)}</span>
                     </div>
-                    <p className="font-semibold text-white">{r.title}</p>
-                    <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                      <MapPin size={11} />{r.address_text || r.province || 'Chưa rõ'}
+                    <p className="font-semibold text-gray-900 dark:text-white">{r.title}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-1">
+                      <MapPin size={11} />{r.address_text || r.province || t('common.unknown')}
                       {user?.lat && user?.lng && r.lat && r.lng && (
                         <span className="ml-2 text-red-400 font-medium whitespace-nowrap">
                           ({formatDistance(getDistance(user.lat, user.lng, r.lat, r.lng))})

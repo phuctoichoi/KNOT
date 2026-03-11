@@ -22,8 +22,8 @@ export default function ResetPasswordPage() {
       <MainLayout showFooter={false}>
         <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
           <div className="card text-center max-w-md w-full">
-            <h2 className="text-xl font-bold text-white mb-2">{t('common.error')}</h2>
-            <p className="text-gray-400 mb-6">{t('auth.verify_expired')}</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('common.error')}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">{error || t('common.error_occurred')}</p>
             <Link to="/forgot-password" className="btn-outline w-full">{t('auth.forgot_password')}</Link>
           </div>
         </div>
@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password !== confirm) {
-      setError('Mật khẩu xác nhận không khớp')
+      setError(t('auth.password_mismatch'))
       return
     }
     
@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
       await api.post('/auth/reset-password', { token, new_password: password })
       setSuccess(true)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Thao tác thất bại. Liên kết có thể đã hết hạn.')
+      setError(err?.response?.data?.detail || t('auth.reset_failed'))
     } finally {
       setLoading(false)
     }
@@ -62,16 +62,16 @@ export default function ResetPasswordPage() {
             {success ? (
               <div className="text-center py-6 animate-in fade-in zoom-in duration-300">
                 <CheckCircle2 size={48} className="text-green-500 mx-auto mb-4" />
-                <h2 className="text-lg font-bold text-white mb-2">Thành công!</h2>
-                <p className="text-gray-400 text-sm mb-6">Mật khẩu của bạn đã được cập nhật.</p>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('common.success')}</h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{t('auth.reset_success_msg')}</p>
                 <Link to="/login" className="btn-primary w-full max-w-[200px] inline-flex items-center justify-center gap-2">
-                  Đăng nhập ngay
+                  {t('auth.login_now')}
                 </Link>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="label">Mật khẩu mới</label>
+                  <label className="label">{t('auth.new_password')}</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Lock size={16} className="text-gray-500" />
@@ -82,14 +82,14 @@ export default function ResetPasswordPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       required 
                       className="input pl-10" 
-                      placeholder="Tối thiểu 8 ký tự, 1 hoa, 1 số, 1 đặc biệt"
+                      placeholder={t('auth.password_req')}
                       minLength={8}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="label">Xác nhận mật khẩu</label>
+                  <label className="label">{t('auth.confirm_password')}</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Lock size={16} className="text-gray-500" />
@@ -100,7 +100,7 @@ export default function ResetPasswordPage() {
                       onChange={(e) => setConfirm(e.target.value)}
                       required 
                       className="input pl-10" 
-                      placeholder="Nhập lại mật khẩu mới"
+                      placeholder={t('auth.retype_new_password')}
                     />
                   </div>
                 </div>
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
                 )}
 
                 <button type="submit" disabled={loading} className="btn-danger w-full py-3 mt-4">
-                  {loading ? 'Đang xử lý...' : 'Xác nhận đổi mật khẩu'}
+                  {loading ? t('common.processing') : t('auth.confirm_reset')}
                 </button>
               </form>
             )}
@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
 
           {!success && (
             <div className="text-center mt-6">
-              <Link to="/login" className="text-gray-400 hover:text-white text-sm transition-colors inline-flex items-center gap-2">
+              <Link to="/login" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors inline-flex items-center gap-2">
                 <ArrowLeft size={16} /> {t('auth.back_to_login')}
               </Link>
             </div>

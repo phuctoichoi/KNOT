@@ -5,10 +5,10 @@ import { AlertTriangle } from 'lucide-react'
 import api from '@/services/api'
 
 const SEVERITY_CLASSES: Record<string, string> = {
-  critical: 'bg-red-900/40 border-red-700/60 text-red-200',
-  danger:   'bg-orange-900/40 border-orange-700/60 text-orange-200',
-  warning:  'bg-yellow-900/40 border-yellow-700/60 text-yellow-200',
-  info:     'bg-blue-900/40 border-blue-700/60 text-blue-200',
+  critical: 'bg-red-100 border-red-200 text-red-900 dark:bg-red-900/40 dark:border-red-700/60 dark:text-red-200',
+  danger:   'bg-orange-100 border-orange-200 text-orange-900 dark:bg-orange-900/40 dark:border-orange-700/60 dark:text-orange-200',
+  warning:  'bg-yellow-100 border-yellow-200 text-yellow-900 dark:bg-yellow-900/40 dark:border-yellow-700/60 dark:text-yellow-200',
+  info:     'bg-blue-100 border-blue-200 text-blue-900 dark:bg-blue-900/40 dark:border-blue-700/60 dark:text-blue-200',
 }
 
 export default function AlertsPage() {
@@ -21,14 +21,14 @@ export default function AlertsPage() {
   return (
     <MainLayout>
       <div className="page-container py-10">
-        <h1 className="section-title flex items-center gap-3">
+        <h1 className="section-title flex items-center gap-3 text-gray-900 dark:text-white">
           <AlertTriangle className="text-yellow-400" size={28} />
-          Cảnh báo thiên tai
+          {t('nav.alerts')}
         </h1>
         {isLoading ? (
           <p className="text-gray-400">{t('common.loading')}</p>
         ) : alerts.length === 0 ? (
-          <div className="card text-center py-12 text-gray-500">Không có cảnh báo nào đang hoạt động</div>
+          <div className="card text-center py-12 text-gray-500">{t('admin.no_active_alerts')}</div>
         ) : (
           <div className="space-y-4">
             {alerts.map((a: any) => (

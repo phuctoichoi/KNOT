@@ -37,14 +37,14 @@ export default function StatsPage() {
                         <BarChart2 size={24} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-white">Thống kê hệ thống</h1>
-                        <p className="text-gray-400">Dữ liệu tổng quan về các hoạt động báo cáo trên nền tảng KNOT</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('stats.title')}</h1>
+                        <p className="text-gray-600 dark:text-gray-400">{t('stats.desc')}</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                    <div className="card border-gray-800 bg-gray-900/60 backdrop-blur-md">
-                        <h3 className="font-semibold text-white mb-6 text-center">{t('admin.reports_by_type', 'Báo cáo theo loại thiên tai')}</h3>
+                    <div className="card border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md">
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-6 text-center">{t('admin.reports_by_type', 'Báo cáo theo loại thiên tai')}</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
                                 <Pie
@@ -77,8 +77,8 @@ export default function StatsPage() {
                         {byType.length === 0 && <p className="text-center text-gray-600 text-sm -mt-8 relative z-10">{t('common.no_data', 'Chưa có dữ liệu')}</p>}
                     </div>
 
-                    <div className="card border-gray-800 bg-gray-900/60 backdrop-blur-md">
-                        <h3 className="font-semibold text-white mb-6 text-center">{t('admin.report_trend', 'Xu hướng báo cáo (90 ngày)')}</h3>
+                    <div className="card border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md">
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-6 text-center">{t('admin.report_trend', 'Xu hướng báo cáo (90 ngày)')}</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
