@@ -18,6 +18,7 @@ export default function OrgDashboard() {
   const [tab, setTab] = useState<Tab>('relief')
   const [showForm, setShowForm] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [selectedProvince, setSelectedProvince] = useState<string>('all')
   const [form, setForm] = useState({
     title: '', content: '', route: '', province: '',
     district: '', contact_phone: '', contact_email: '',
@@ -43,6 +44,35 @@ export default function OrgDashboard() {
     queryFn: async () => { const { data } = await api.get('/reports?status=pending,verified,in_progress&limit=20'); return data }
   })
   const reports = reportsData?.items || []
+
+  // Helper to extract province/city from address_text if province field is missing or generic
+  const extractProvince = (r: any) => {
+    if (r.province) return r.province
+    if (!r.address_text) return null
+
+    const parts = r.address_text.split(',').map((p: string) => p.trim())
+    const cityOrProvince = parts.find((p: string) =>
+      p.toLowerCase().startsWith('thành phố') ||
+      p.toLowerCase().startsWith('tỉnh') ||
+      p.toLowerCase() === 'hà nội' || p.toLowerCase() === 'đà nẵng' ||
+      p.toLowerCase() === 'cần thơ' || p.toLowerCase() === 'hải phòng' ||
+      p.toLowerCase() === 'hồ chí minh'
+    )
+    if (cityOrProvince) return cityOrProvince
+    if (parts.length >= 2) {
+      const candidate = parts[parts.length - 2]
+      if (!candidate.match(/\d+/) && candidate.toLowerCase() !== 'việt nam') return candidate
+    }
+    return null
+  }
+
+  const availableProvinces = Array.from(
+    new Set(reports.map(extractProvince).filter(Boolean))
+  ) as string[]
+
+  const filteredReports = reports.filter((r: any) =>
+    selectedProvince === 'all' || extractProvince(r) === selectedProvince
+  )
 
   // Mutations
   const createMutation = useMutation({
@@ -123,9 +153,8 @@ export default function OrgDashboard() {
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                tab === key ? 'border-red-500 text-red-400' : 'border-transparent text-gray-400 hover:text-white'
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${tab === key ? 'border-red-500 text-red-400' : 'border-transparent text-gray-400 hover:text-white'
+                }`}
             >
               {label}
             </button>
@@ -232,12 +261,32 @@ export default function OrgDashboard() {
         {/* ── Pending Reports Tab ── */}
         {tab === 'reports' && (
           <div>
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2"><FileText size={18} />{t('dashboard.reports_pending')}</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <FileText size={18} />{t('dashboard.reports_pending')}
+              </h2>
+              {availableProvinces.length > 0 && (
+                <select
+                  title={t('common.filter_by_province', 'Lọc theo tỉnh/thành')}
+                  value={selectedProvince}
+                  onChange={e => setSelectedProvince(e.target.value)}
+                  className="select w-full sm:w-auto text-sm py-1.5"
+                >
+                  <option value="all">Tất cả khu vực</option>
+                  {availableProvinces.map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+
             {reports.length === 0 ? (
-              <div className="card text-center py-10 text-gray-500">{t('common.error')}</div>
+              <div className="card text-center py-10 text-gray-500">{t('notif.no_notifs')}</div>
+            ) : filteredReports.length === 0 ? (
+              <div className="card text-center py-10 text-gray-500">Không có báo cáo ở khu vực này</div>
             ) : (
               <div className="space-y-3">
-                {reports.map((r: any) => (
+                {filteredReports.map((r: any) => (
                   <div key={r.id} className="card cursor-pointer hover:bg-gray-800/80 transition-colors" onClick={() => setExpanded(e => e === r.id ? null : r.id)}>
                     <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="flex-1">

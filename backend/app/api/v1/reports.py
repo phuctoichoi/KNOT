@@ -100,6 +100,8 @@ async def upload_report_images(report_id: str, files: List[UploadFile] = File(..
         img = ReportImage(report_id=report_id, url=url, filename=f.filename, size_bytes=len(content))
         db.add(img)
         urls.append(url)
+        
+    await db.commit()
     return {"uploaded": urls}
 
 

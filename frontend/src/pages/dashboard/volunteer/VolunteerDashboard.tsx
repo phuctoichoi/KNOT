@@ -15,6 +15,7 @@ export default function VolunteerDashboard() {
   const qc = useQueryClient()
 
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [selectedProvince, setSelectedProvince] = useState<string>('all')
 
   const { data } = useQuery({
     queryKey: ['reports', 'pending'],
@@ -29,6 +30,45 @@ export default function VolunteerDashboard() {
 
   const reports = data?.items || []
 
+  // Helper to extract province/city from address_text if province field is missing or generic
+  const extractProvince = (r: any) => {
+    if (r.province) return r.province
+    if (!r.address_text) return null
+
+    // Attempt to extract from address string (e.g. "..., Thành phố Cần Thơ, ...")
+    // Usually the province/city is near the end before the country or zip code
+    const parts = r.address_text.split(',').map((p: string) => p.trim())
+
+    // Look for keywords
+    const cityOrProvince = parts.find((p: string) =>
+      p.toLowerCase().startsWith('thành phố') ||
+      p.toLowerCase().startsWith('tỉnh') ||
+      p.toLowerCase() === 'hà nội' || p.toLowerCase() === 'đà nẵng' ||
+      p.toLowerCase() === 'cần thơ' || p.toLowerCase() === 'hải phòng' ||
+      p.toLowerCase() === 'hồ chí minh'
+    )
+
+    if (cityOrProvince) return cityOrProvince
+
+    // Fallback: just return the 2nd to last part if it exists and isn't a country
+    if (parts.length >= 2) {
+      const candidate = parts[parts.length - 2]
+      if (!candidate.match(/\d+/) && candidate.toLowerCase() !== 'việt nam') {
+        return candidate
+      }
+    }
+
+    return null
+  }
+
+  const availableProvinces = Array.from(
+    new Set(reports.map(extractProvince).filter(Boolean))
+  ) as string[]
+
+  const filteredReports = reports.filter((r: any) =>
+    selectedProvince === 'all' || extractProvince(r) === selectedProvince
+  )
+
   return (
     <div className="min-h-screen bg-gray-950">
       <AlertBanner />
@@ -40,12 +80,31 @@ export default function VolunteerDashboard() {
             <p>{t('dashboard.volunteer.title')}</p>
           </div>
         </div>
-        <h2 className="text-lg font-semibold text-white mb-4">{t('dashboard.reports_pending')}</h2>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <h2 className="text-lg font-semibold text-white">{t('dashboard.reports_pending')}</h2>
+          {availableProvinces.length > 0 && (
+            <select
+              title={t('common.filter_by_province', 'Lọc theo tỉnh/thành')}
+              value={selectedProvince}
+              onChange={e => setSelectedProvince(e.target.value)}
+              className="select w-full sm:w-auto text-sm py-1.5"
+            >
+              <option value="all">Tất cả khu vực</option>
+              {availableProvinces.map(p => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          )}
+        </div>
+
         {reports.length === 0 ? (
           <div className="card text-center py-10 text-gray-500">{t('notif.no_notifs')}</div>
+        ) : filteredReports.length === 0 ? (
+          <div className="card text-center py-10 text-gray-500">Không có báo cáo ở khu vực này</div>
         ) : (
           <div className="space-y-3">
-            {reports.map((r: any) => (
+            {filteredReports.map((r: any) => (
               <div key={r.id} className="card cursor-pointer hover:bg-gray-800/80 transition-colors" onClick={() => setExpanded(e => e === r.id ? null : r.id)}>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex-1">

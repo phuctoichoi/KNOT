@@ -2,7 +2,7 @@ import uuid
 import enum
 from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import String, Text, Enum, DateTime, ForeignKey, Float
+from sqlalchemy import String, Text, Enum, DateTime, ForeignKey, Float, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from geoalchemy2 import Geography
@@ -76,6 +76,6 @@ class ReportImage(Base):
     url: Mapped[str] = mapped_column(Text, nullable=False)
     filename: Mapped[Optional[str]] = mapped_column(String(255))
     size_bytes: Mapped[Optional[int]] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     report: Mapped["Report"] = relationship("Report", back_populates="images")

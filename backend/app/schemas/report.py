@@ -68,6 +68,8 @@ class ReportPublic(BaseModel):
     lat: Optional[float] = None
     lng: Optional[float] = None
     submitted_by: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
     images: List[ReportImageOut] = []
     created_at: datetime
     updated_at: datetime

@@ -46,12 +46,11 @@ export default function ReportDetailModal({ report, userLat, userLng, onClose, a
         <div className="p-6">
           {/* Header Row */}
           <div className="flex items-center gap-3 mb-6">
-            <span className={`px-3 py-1 text-sm font-semibold rounded-md ${
-              report.status === 'pending' ? 'bg-red-500 text-white' : 
-              report.status === 'verified' ? 'bg-blue-600 text-white' : 
-              report.status === 'in_progress' ? 'bg-orange-500 text-white' : 
-              'bg-green-600 text-white'
-            }`}>
+            <span className={`px-3 py-1 text-sm font-semibold rounded-md ${report.status === 'pending' ? 'bg-red-500 text-white' :
+                report.status === 'verified' ? 'bg-blue-600 text-white' :
+                  report.status === 'in_progress' ? 'bg-orange-500 text-white' :
+                    'bg-green-600 text-white'
+              }`}>
               {t(`report.status.${report.status}`)}
             </span>
           </div>
@@ -78,7 +77,11 @@ export default function ReportDetailModal({ report, userLat, userLng, onClose, a
             </div>
             <div className="flex">
               <span className="w-28 font-semibold text-gray-700">Liên hệ:</span>
-              <span className="text-gray-600">{report.contact_phone || report.contact_email || 'Không có'}</span>
+              <span className="text-gray-600">
+                {report.contact_phone && report.contact_email
+                  ? `${report.contact_phone} - ${report.contact_email}`
+                  : report.contact_phone || report.contact_email || 'Không có'}
+              </span>
             </div>
           </div>
 
@@ -118,18 +121,18 @@ export default function ReportDetailModal({ report, userLat, userLng, onClose, a
                   zoomControl={true}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  
+
                   {report.lat && report.lng && (
                     <Marker position={[report.lat, report.lng]} icon={reportIcon} />
                   )}
                   {userLat && userLng && (
                     <Marker position={[userLat, userLng]} icon={userIcon} />
                   )}
-                  
+
                   {positions.length === 2 && (
-                    <Polyline 
-                      positions={positions} 
-                      pathOptions={{ color: '#3b82f6', weight: 3, dashArray: '8, 8' }} 
+                    <Polyline
+                      positions={positions}
+                      pathOptions={{ color: '#3b82f6', weight: 3, dashArray: '8, 8' }}
                     />
                   )}
                 </MapContainer>
@@ -145,30 +148,30 @@ export default function ReportDetailModal({ report, userLat, userLng, onClose, a
             >
               Đóng
             </button>
-            
+
             <div className="flex-1 relative">
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu) }}
                 className="w-full px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex justify-center items-center gap-2"
               >
                 Cập nhật trạng thái
               </button>
-              
+
               {showMenu && (
                 <div className="absolute bottom-full mb-2 right-0 w-full bg-white border border-gray-200 shadow-xl rounded-lg overflow-hidden z-10 animate-in slide-in-from-bottom-2 fade-in">
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); setShowMenu(false); actions.verify(report.id); onClose() }}
                     className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
                   >
                     Đã xác minh
                   </button>
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); setShowMenu(false); actions.process(report.id); onClose() }}
                     className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
                   >
                     Đang xử lý
                   </button>
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); setShowMenu(false); actions.resolve(report.id); onClose() }}
                     className="w-full text-left px-4 py-3 hover:bg-gray-50 text-sm font-medium text-green-600 hover:bg-green-50 transition-colors"
                   >
