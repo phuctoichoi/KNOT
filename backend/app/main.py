@@ -7,7 +7,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.core.redis import close_redis
-from app.api.v1 import auth, users, reports, alerts, zones, support, notifications, map_data, search, analytics, admin
+from app.api.v1 import auth, users, reports, alerts, zones, support, notifications, map_data, search, analytics, admin, citizen
 from app.websockets.handlers import ws_router
 
 
@@ -51,6 +51,7 @@ app.include_router(map_data.router,      prefix=PREFIX)
 app.include_router(search.router,        prefix=PREFIX)
 app.include_router(analytics.router,     prefix=PREFIX)
 app.include_router(admin.router,         prefix=PREFIX)
+app.include_router(citizen.router,       prefix=PREFIX)
 
 app.include_router(ws_router)
 

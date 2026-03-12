@@ -2,7 +2,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
-import { Bell, Map, AlertTriangle, Heart, LogOut, LayoutDashboard, Globe, BarChart2, Moon, Sun } from 'lucide-react'
+import { 
+  Menu, X, Sun, Moon, Globe, Bell, LayoutDashboard, LogOut, Map, 
+  AlertTriangle, BarChart2, ShieldCheck 
+} from 'lucide-react'
 import api from '@/services/api'
 import { useTheme } from '@/hooks/useTheme'
 
@@ -39,6 +42,9 @@ export default function Navbar() {
           )}
           <Link to="/alerts" className="btn-ghost"><AlertTriangle size={16} />{t('nav.alerts')}</Link>
           <Link to="/stats" className="btn-ghost"><BarChart2 size={16} />{t('nav.stats')}</Link>
+          <Link to="/safe-search" className="btn-ghost text-green-600 dark:text-green-400 font-medium">
+            <ShieldCheck size={16} />{t('nav.safe_search')}
+          </Link>
         </div>
 
         {/* Right side */}

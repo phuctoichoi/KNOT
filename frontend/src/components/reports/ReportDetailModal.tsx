@@ -1,11 +1,16 @@
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { MapPin, Phone, Images } from 'lucide-react'
-import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet'
-import L from 'leaflet'
-import { formatDistance, getDistance } from '@/utils/distance'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet'
+import * as L from 'leaflet'
+import { formatDistance, getDistance } from '@/utils/distance'
+import {
+  MapPin, Phone, Images, Clock, MessageSquare, Send, ImagePlus, X,
+  AlertTriangle, CheckCircle2
+} from 'lucide-react'
+import api from '@/services/api'
 
 // Create custom icons for the markers
 const createCustomIcon = (colorClass: string) => {
@@ -24,7 +29,40 @@ const reportIcon = createCustomIcon('bg-red-600')
 
 export default function ReportDetailModal({ report, userLat, userLng, onClose, actions }: any) {
   const { t } = useTranslation()
+  const qc = useQueryClient()
   const [showMenu, setShowMenu] = useState(false)
+  const [text, setText] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+
+  const { data: updates = [], isFetching } = useQuery({
+    queryKey: ['report-updates', report?.id],
+    queryFn: async () => {
+      const { data } = await api.get(`/reports/${report.id}/updates`)
+      return data
+    },
+    enabled: !!report?.id,
+  })
+
+  const addUpdate = useMutation({
+    mutationFn: async () => {
+      const fd = new FormData()
+      fd.append('content', text)
+      if (file) fd.append('image', file)
+      await api.post(`/reports/${report.id}/updates`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    },
+    onSuccess: () => {
+      setText('')
+      setFile(null)
+      setPreview(null)
+      qc.invalidateQueries({ queryKey: ['report-updates', report.id] })
+    },
+  })
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    if (f) { setFile(f); setPreview(URL.createObjectURL(f)) }
+  }
 
   if (!report) return null
 
@@ -139,6 +177,96 @@ export default function ReportDetailModal({ report, userLat, userLng, onClose, a
               </div>
             </div>
           )}
+
+          {/* Timeline & Updates */}
+          <div className="mb-8 border-t border-gray-100 pt-6">
+            <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Clock size={16} /> {t('citizen.timeline')}
+            </h3>
+
+            {isFetching ? (
+              <p className="text-xs text-gray-400">{t('common.loading')}</p>
+            ) : updates.length === 0 ? (
+              <div className="flex gap-3 items-start mb-6">
+                <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                <div>
+                  <p className="text-sm text-gray-700">{t('citizen.report_submitted')}</p>
+                  <p className="text-xs text-gray-400">{new Date(report.created_at).toLocaleString('vi-VN')}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4 mb-6 relative ml-1 before:absolute before:inset-y-0 before:left-[3px] before:w-px before:bg-gray-200">
+                {/* Initial event */}
+                <div className="flex gap-4 items-start relative">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0 z-10" />
+                  <div>
+                    <p className="text-sm text-gray-700">{t('citizen.report_submitted')}</p>
+                    <p className="text-xs text-gray-400">{new Date(report.created_at).toLocaleString('vi-VN')}</p>
+                  </div>
+                </div>
+                {updates.map((u: any) => (
+                  <div key={u.id} className="flex gap-4 items-start relative">
+                    <div className="w-2 h-2 rounded-full bg-orange-400 mt-1.5 shrink-0 z-10" />
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-gray-500">
+                        {u.author.full_name}
+                        <span className="ml-1 font-normal text-gray-400">({t(`role.${u.author.role}`)})</span>
+                      </p>
+                      <p className="text-sm text-gray-700 mt-0.5">{u.content}</p>
+                      {u.image_url && (
+                        <img src={u.image_url} alt="update" className="mt-2 rounded-lg max-h-48 object-cover border border-gray-100" />
+                      )}
+                      <p className="text-xs text-gray-400 mt-1">{new Date(u.created_at).toLocaleString('vi-VN')}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add Update Form */}
+            {report.status !== 'resolved' && report.status !== 'rejected' && (
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-1">
+                  <MessageSquare size={12} /> {t('citizen.add_update')}
+                </p>
+                <textarea
+                  value={text}
+                  onChange={e => setText(e.target.value)}
+                  rows={2}
+                  className="w-full bg-white border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+                  placeholder={t('citizen.update_placeholder')}
+                />
+                
+                {preview && (
+                  <div className="relative mt-3 inline-block">
+                    <img src={preview} alt="preview" className="max-h-32 rounded-lg object-cover border border-white shadow-sm" />
+                    <button 
+                      onClick={() => { setFile(null); setPreview(null) }}
+                      aria-label="Remove image"
+                      className="absolute -top-2 -right-2 bg-gray-800 rounded-full p-1 text-white hover:bg-black transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 mt-3">
+                  <label className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-blue-600 cursor-pointer transition-colors">
+                    <ImagePlus size={14} /> {t('citizen.attach_photo')}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFile} />
+                  </label>
+                  <button
+                    onClick={() => addUpdate.mutate()}
+                    disabled={!text.trim() || addUpdate.isPending}
+                    className="ml-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                  >
+                    <Send size={12} />
+                    {addUpdate.isPending ? t('common.saving') : t('citizen.send_update')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t border-gray-100 relative">

@@ -13,6 +13,7 @@ import RegisterPage from '@/pages/public/RegisterPage'
 import VerifyEmailPage from '@/pages/public/VerifyEmailPage'
 import ForgotPasswordPage from '@/pages/public/ForgotPasswordPage'
 import ResetPasswordPage from '@/pages/public/ResetPasswordPage'
+import SafeSearchPage from '@/pages/public/SafeSearchPage'
 
 // Dashboard
 import RoleDashboard from '@/pages/dashboard/RoleDashboard'
@@ -41,6 +42,7 @@ export default function App() {
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={loggedIn ? <Navigate to="/dashboard" /> : <ForgotPasswordPage />} />
       <Route path="/reset-password" element={loggedIn ? <Navigate to="/dashboard" /> : <ResetPasswordPage />} />
+      <Route path="/safe-search" element={<SafeSearchPage />} />
 
       {/* Protected dashboard */}
       <Route path="/dashboard/*" element={

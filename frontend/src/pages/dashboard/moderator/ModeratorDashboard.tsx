@@ -2,14 +2,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import Navbar from '@/components/layout/Navbar'
 import AlertBanner from '@/components/alerts/AlertBanner'
-import { CheckCircle, XCircle, Users, Megaphone, Trash2, Route } from 'lucide-react'
+import { CheckCircle, XCircle, Users, User, Megaphone, Trash2, Route, AlertTriangle, Bell } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import api from '@/services/api'
+import { useState } from 'react'
 
 export default function ModeratorDashboard() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
   const qc = useQueryClient()
+  const [alertForm, setAlertForm] = useState({ title: '', body: '', severity: 'warning', province: '' })
   
   const { data: pending } = useQuery({
     queryKey: ['users', 'pending'],
@@ -19,6 +21,21 @@ export default function ModeratorDashboard() {
   const { data: reliefData } = useQuery({
     queryKey: ['relief', 'all'],
     queryFn: async () => { const { data } = await api.get('/support/relief'); return data }
+  })
+
+  const { data: alerts = [] } = useQuery({
+    queryKey: ['admin', 'alerts'],
+    queryFn: async () => { const { data } = await api.get('/alerts'); return data }
+  })
+
+  const broadcastAlert = useMutation({
+    mutationFn: () => api.post('/alerts', alertForm),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'alerts'] }); setAlertForm({ title: '', body: '', severity: 'warning', province: '' }) }
+  })
+
+  const deactivateAlert = useMutation({
+    mutationFn: (id: string) => api.patch(`/alerts/${id}`, { is_active: false }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'alerts'] })
   })
 
   const updateStatus = useMutation({
@@ -34,6 +51,13 @@ export default function ModeratorDashboard() {
 
   const pendingUsers = pending?.items || []
   const reliefPosts: any[] = reliefData?.items ?? []
+
+  const SEV_COLORS: Record<string, string> = {
+    info: 'text-blue-300 bg-blue-500/20',
+    warning: 'text-yellow-300 bg-yellow-500/20',
+    danger: 'text-orange-300 bg-orange-500/20',
+    critical: 'text-red-300 bg-red-500/20',
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -119,6 +143,66 @@ export default function ModeratorDashboard() {
             </div>
           )}
         </section>
+
+        {/* Alerts management */}
+        <section>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <AlertTriangle size={18} className="text-red-400" />
+            {t('nav.alerts')} {/* Reuse nav.alerts or similar key if prefer, but let's just stick to the section */}
+          </h2>
+
+          <div className="card space-y-4 mb-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2"><AlertTriangle size={16} className="text-red-400" /> {t('admin.new_alert_title')}</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <input className="input" placeholder={t('admin.broadcast_placeholder')} value={alertForm.title}
+                onChange={e => setAlertForm(f => ({ ...f, title: e.target.value }))} />
+              <select className="input" value={alertForm.severity} title={t('report.severity')}
+                onChange={e => setAlertForm(f => ({ ...f, severity: e.target.value }))}>
+                <option value="info">ℹ️ {t('alert.severity.info')}</option>
+                <option value="warning">⚠️ {t('alert.severity.warning')}</option>
+                <option value="danger">🔴 {t('alert.severity.danger')}</option>
+                <option value="critical">🚨 {t('alert.severity.critical')}</option>
+              </select>
+              <textarea className="input lg:col-span-2 h-20 resize-none" placeholder={t('admin.body_placeholder')}
+                value={alertForm.body} onChange={e => setAlertForm(f => ({ ...f, body: e.target.value }))} />
+              <input className="input" placeholder={`${t('profile.province')} (${t('common.all')})`} value={alertForm.province}
+                onChange={e => setAlertForm(f => ({ ...f, province: e.target.value }))} />
+              <button onClick={() => broadcastAlert.mutate()} disabled={!alertForm.title || !alertForm.body || broadcastAlert.isPending}
+                className="btn-danger flex items-center justify-center gap-2">
+                <Bell size={16} /> {t('admin.broadcast_btn')}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="font-semibold text-gray-900 dark:text-white">{t('admin.active_alerts_count', { count: alerts.filter((a: any) => a.is_active).length })}</h3>
+            {alerts.filter((a: any) => a.is_active).length === 0 && (
+              <div className="card text-center py-8 text-gray-500">{t('admin.no_active_alerts')}</div>
+            )}
+            {alerts.filter((a: any) => a.is_active).map((a: any) => (
+              <div key={a.id} className="card flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${SEV_COLORS[a.severity] ?? ''}`}>{t(`alert.severity.${a.severity}`).toUpperCase()}</span>
+                    {a.province && <span className="text-xs text-gray-500">📍 {a.province}</span>}
+                  </div>
+                  <p className="text-gray-900 dark:text-white font-medium">{a.title}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{a.body}</p>
+                  {a.author_name && (
+                    <div className="flex items-center gap-1 mt-2 text-xs text-blue-500 dark:text-blue-400">
+                      <User size={12} /> {a.author_name} ({t(`role.${a.author_role}`, a.author_role)})
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => deactivateAlert.mutate(a.id)}
+                  className="shrink-0 text-xs px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors">
+                  {t('common.deactivate')}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
       </div>
     </div>
   )

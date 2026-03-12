@@ -48,15 +48,26 @@ async def create_alert(body: AlertCreate, request: Request,
 
 @router.get("", response_model=list[AlertPublic])
 async def list_alerts(province: Optional[str] = None, db: AsyncSession = Depends(get_db)):
+    from app.models.user import User
     now = datetime.now(timezone.utc)
-    stmt = select(Alert).where(Alert.is_active == True).where(
-        (Alert.expires_at == None) | (Alert.expires_at > now)
+    stmt = (
+        select(Alert, User.full_name, User.role)
+        .outerjoin(User, Alert.created_by == User.id)
+        .where(Alert.is_active == True)
+        .where((Alert.expires_at == None) | (Alert.expires_at > now))
     )
     if province:
         stmt = stmt.where((Alert.province == province) | (Alert.province == None))
     stmt = stmt.order_by(Alert.created_at.desc())
-    alerts = (await db.execute(stmt)).scalars().all()
-    return alerts
+    
+    rows = (await db.execute(stmt)).all()
+    results = []
+    for alert, full_name, role in rows:
+        alert_dict = alert.__dict__.copy()
+        alert_dict["author_name"] = full_name
+        alert_dict["author_role"] = role.value if role else None
+        results.append(alert_dict)
+    return results
 
 
 @router.get("/{alert_id}", response_model=AlertPublic)

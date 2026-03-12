@@ -39,6 +39,9 @@ class AlertPublic(BaseModel):
     is_active: bool
     expires_at: Optional[datetime] = None
     created_at: datetime
+    # Author info loaded by API
+    author_name: Optional[str] = None
+    author_role: Optional[str] = None
 
 
 class ZoneCreate(BaseModel):

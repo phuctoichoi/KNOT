@@ -8,7 +8,7 @@ import {
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts'
 import {
-  Users, FileText, Bell, Shield, ClipboardList,
+  Users, User, FileText, Bell, Shield, ClipboardList,
   CheckCircle, XCircle, RefreshCw, AlertTriangle, Activity, Trash2
 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
@@ -440,6 +440,11 @@ function AlertsTab() {
               </div>
               <p className="text-gray-900 dark:text-white font-medium">{a.title}</p>
               <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{a.body}</p>
+              {a.author_name && (
+                <div className="flex items-center gap-1 mt-2 text-xs text-blue-500 dark:text-blue-400">
+                  <User size={12} /> {a.author_name} ({t(`role.${a.author_role}`, a.author_role)})
+                </div>
+              )}
             </div>
             <button onClick={() => deactivate.mutate(a.id)}
               className="shrink-0 text-xs px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors">

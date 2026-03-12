@@ -1,7 +1,7 @@
 import MainLayout from '@/components/layout/MainLayout'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, User } from 'lucide-react'
 import api from '@/services/api'
 
 const SEVERITY_CLASSES: Record<string, string> = {
@@ -43,6 +43,11 @@ export default function AlertsPage() {
                     <p className="mt-2 text-sm opacity-90">
                       {i18n.language === 'en' && a.body_en ? a.body_en : a.body}
                     </p>
+                    {a.author_name && (
+                      <div className="flex items-center gap-1 mt-3 text-xs opacity-80 font-medium">
+                        <User size={12} /> {a.author_name} ({t(`role.${a.author_role}`, a.author_role)})
+                      </div>
+                    )}
                   </div>
                 </div>
                 <p className="text-xs opacity-50 mt-3">{new Date(a.created_at).toLocaleString('vi-VN')}</p>
