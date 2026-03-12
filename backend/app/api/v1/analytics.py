@@ -11,13 +11,13 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 async def reports_summary(current_user=Depends(require_roles("admin")), db: AsyncSession = Depends(get_db)):
     row = (await db.execute(text("""
         SELECT
-            COUNT(*) FILTER (WHERE deleted_at IS NULL) AS total,
-            COUNT(*) FILTER (WHERE status = 'pending') AS pending,
+            COUNT(*) AS total,
+            COUNT(*) FILTER (WHERE status = 'pending' AND deleted_at IS NULL) AS pending,
             COUNT(*) FILTER (WHERE status = 'verified') AS verified,
             COUNT(*) FILTER (WHERE status = 'in_progress') AS in_progress,
             COUNT(*) FILTER (WHERE status = 'resolved') AS resolved,
             COUNT(*) FILTER (WHERE status = 'rejected') AS rejected
-        FROM reports WHERE deleted_at IS NULL
+        FROM reports
     """))).fetchone()
     return dict(row._mapping)
 
@@ -25,8 +25,8 @@ async def reports_summary(current_user=Depends(require_roles("admin")), db: Asyn
 async def public_reports_summary(db: AsyncSession = Depends(get_db)):
     row = (await db.execute(text("""
         SELECT
-            COUNT(*) FILTER (WHERE deleted_at IS NULL AND DATE(created_at) = CURRENT_DATE) AS today_count,
-            COUNT(*) FILTER (WHERE deleted_at IS NULL AND status = 'in_progress') AS in_progress
+            COUNT(*) FILTER (WHERE DATE(created_at) = CURRENT_DATE) AS today_count,
+            COUNT(*) FILTER (WHERE status = 'in_progress') AS in_progress
         FROM reports
     """))).fetchone()
     return dict(row._mapping)
@@ -36,7 +36,7 @@ async def public_reports_summary(db: AsyncSession = Depends(get_db)):
 async def public_reports_by_type(db: AsyncSession = Depends(get_db)):
     rows = (await db.execute(text("""
         SELECT disaster_type, COUNT(*) AS count FROM reports
-        WHERE deleted_at IS NULL GROUP BY disaster_type ORDER BY count DESC
+        GROUP BY disaster_type ORDER BY count DESC
     """))).fetchall()
     return [{"type": r.disaster_type, "count": r.count} for r in rows]
 
@@ -45,7 +45,7 @@ async def public_reports_trend(period: str = "daily", db: AsyncSession = Depends
     trunc = {"daily": "day", "weekly": "week", "monthly": "month"}.get(period, "day")
     rows = (await db.execute(text("""
         SELECT DATE_TRUNC(:trunc, created_at) AS period, COUNT(*) AS count
-        FROM reports WHERE deleted_at IS NULL AND created_at > NOW() - INTERVAL '90 days'
+        FROM reports WHERE created_at > NOW() - INTERVAL '90 days'
         GROUP BY period ORDER BY period
     """), {"trunc": trunc})).fetchall()
     return [{"period": str(r.period), "count": r.count} for r in rows]
@@ -54,7 +54,7 @@ async def public_reports_trend(period: str = "daily", db: AsyncSession = Depends
 async def reports_by_type(current_user=Depends(require_roles("admin")), db: AsyncSession = Depends(get_db)):
     rows = (await db.execute(text("""
         SELECT disaster_type, COUNT(*) AS count FROM reports
-        WHERE deleted_at IS NULL GROUP BY disaster_type ORDER BY count DESC
+        GROUP BY disaster_type ORDER BY count DESC
     """))).fetchall()
     return [{"type": r.disaster_type, "count": r.count} for r in rows]
 
@@ -63,7 +63,7 @@ async def reports_by_type(current_user=Depends(require_roles("admin")), db: Asyn
 async def reports_by_region(current_user=Depends(require_roles("admin")), db: AsyncSession = Depends(get_db)):
     rows = (await db.execute(text("""
         SELECT province, COUNT(*) AS count FROM reports
-        WHERE deleted_at IS NULL AND province IS NOT NULL
+        WHERE province IS NOT NULL
         GROUP BY province ORDER BY count DESC LIMIT 20
     """))).fetchall()
     return [{"province": r.province, "count": r.count} for r in rows]
@@ -76,7 +76,7 @@ async def reports_trend(period: str = "daily", current_user=Depends(require_role
     trunc = {"daily": "day", "weekly": "week", "monthly": "month"}.get(period, "day")
     rows = (await db.execute(text("""
         SELECT DATE_TRUNC(:trunc, created_at) AS period, COUNT(*) AS count
-        FROM reports WHERE deleted_at IS NULL AND created_at > NOW() - INTERVAL '90 days'
+        FROM reports WHERE created_at > NOW() - INTERVAL '90 days'
         GROUP BY period ORDER BY period
     """), {"trunc": trunc})).fetchall()
     return [{"period": str(r.period), "count": r.count} for r in rows]

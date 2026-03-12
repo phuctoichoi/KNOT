@@ -36,6 +36,34 @@ def _extract_coords(report: Report) -> tuple[float, float]:
 @router.post("", status_code=201)
 async def submit_report(body: ReportCreate, request: Request, db: AsyncSession = Depends(get_db),
                         current_user=Depends(get_optional_user)):
+    # ── Rate Limiting ──────────────────────────────────────────────────────────
+    from app.core.redis import get_redis
+    redis = await get_redis()
+    WINDOW = 15 * 60  # 15 minutes in seconds
+
+    if current_user:
+        # Authenticated: 3 submissions per 15 min per user account
+        rl_key = f"ratelimit:report:user:{current_user.id}"
+        limit = 3
+    else:
+        # Anonymous: 1 submission per 15 min per email+phone combination
+        identity = f"{body.contact_email}:{body.contact_phone or ''}".lower()
+        rl_key = f"ratelimit:report:anon:{identity}"
+        limit = 1
+
+    count = await redis.incr(rl_key)
+    if count == 1:
+        await redis.expire(rl_key, WINDOW)  # Set TTL on first increment
+    ttl = await redis.ttl(rl_key)
+
+    if count > limit:
+        minutes = max(1, (ttl + 59) // 60)
+        raise HTTPException(
+            status_code=429,
+            detail=f"Bạn đã gửi quá nhiều báo cáo. Vui lòng thử lại sau {minutes} phút."
+        )
+    # ──────────────────────────────────────────────────────────────────────────
+
     report = Report(
         report_type=body.report_type,
         disaster_type=body.disaster_type,
@@ -71,6 +99,7 @@ async def submit_report(body: ReportCreate, request: Request, db: AsyncSession =
         "severity": body.severity.value,
     }))
     return {"message": "Báo cáo đã được gửi thành công", "report_id": report.id}
+
 
 
 @router.post("/{report_id}/images", status_code=201)

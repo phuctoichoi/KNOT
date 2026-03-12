@@ -34,7 +34,20 @@ async def upload_image(file_bytes: bytes, content_type: str, filename: Optional[
         bucket = settings.MINIO_BUCKET
         # Ensure bucket exists
         if not client.bucket_exists(bucket):
+            import json
             client.make_bucket(bucket)
+            policy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {"AWS": ["*"]},
+                        "Action": ["s3:GetObject"],
+                        "Resource": [f"arn:aws:s3:::{bucket}/*"]
+                    }
+                ]
+            }
+            client.set_bucket_policy(bucket, json.dumps(policy))
         client.put_object(
             bucket, key,
             data=io.BytesIO(file_bytes),
