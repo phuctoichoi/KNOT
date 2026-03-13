@@ -105,19 +105,7 @@ services:
     command: >
       sh -c "
         echo 'Waiting for database to be ready...' &&
-        python -c 'import time; import asyncpg; import asyncio; 
-        async def wait_db():
-          for i in range(30):
-            try:
-              conn = await asyncpg.connect(\"postgresql://knot:${POSTGRES_PASSWORD}@postgres:5432/knot_db\")
-              await conn.close()
-              print(\"Database is ready!\")
-              return
-            except:
-              print(f\"Waiting for database... ({i+1}/30)\")
-              time.sleep(2)
-          raise Exception(\"Database not ready after 60 seconds\")
-        asyncio.run(wait_db())' &&
+        python wait-for-db.py &&
         echo 'Running database migrations...' &&
         alembic upgrade head &&
         echo 'Starting FastAPI server...' &&
