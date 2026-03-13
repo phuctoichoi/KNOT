@@ -2,16 +2,16 @@
 
 A comprehensive disaster reporting and relief coordination platform with real-time mapping, role-based dashboards, and emergency alert broadcasting.
 
-## Quick Deployment on Ubuntu
+## 🚀 Production Deployment on Ubuntu VPS
 
-### Prerequisites
+Complete deployment guide for **knot.name.vn** (IP: 14.225.212.229)
 
-1. **Fresh Ubuntu 22.04/24.04 VPS**
-2. **Docker & Docker Compose**
+### Server Information
+- **Domain**: knot.name.vn
+- **IP Address**: 14.225.212.229
+- **OS**: Ubuntu 22.04/24.04
 
-### Installation Steps
-
-#### 1. Install Docker
+### Step 1: Prepare Ubuntu VPS
 
 ```bash
 # Update system
@@ -20,104 +20,91 @@ sudo apt update && sudo apt upgrade -y
 # Install Docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
-
-# Add user to docker group
 sudo usermod -aG docker $USER
 
 # Install Docker Compose
 sudo apt install docker-compose-plugin -y
 
-# Verify installation
-docker --version
-docker compose version
+# Install Git (if not installed)
+sudo apt install git -y
+
+# Logout and login again for Docker group changes
+exit
+# SSH back into your VPS
 ```
 
-#### 2. Deploy KNOT
+### Step 2: Clone and Setup Project
 
 ```bash
-# Clone repository
-git clone <your-repo-url>
-cd knot
+# Clone the repository
+git clone https://github.com/phuctoichoi/KNOT.git
+cd KNOT
 
 # Copy environment template
 cp .env.example .env
+```
 
-# Edit environment variables (REQUIRED)
+### Step 3: Configure Environment Variables
+
+Edit the `.env` file with production values:
+
+```bash
 nano .env
 ```
 
-#### 3. Configure Environment Variables
+**Complete .env configuration for knot.name.vn:**
 
-Edit `.env` file with your values:
+```env
+# Database Configuration
+POSTGRES_PASSWORD=KnotSecureDB2024!
 
-```bash
-# Database - Use a strong password
-POSTGRES_PASSWORD=your_secure_postgres_password
+# Redis Configuration  
+REDIS_PASSWORD=KnotRedis2024!
 
-# Redis - Use a strong password  
-REDIS_PASSWORD=your_secure_redis_password
+# Application Security (generate with: openssl rand -hex 32)
+SECRET_KEY=a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
 
-# Application Security - Generate with: openssl rand -hex 32
-SECRET_KEY=your_64_character_secret_key
+# MinIO Object Storage
+MINIO_ACCESS_KEY=knotminio
+MINIO_SECRET_KEY=KnotMinIO2024!
 
-# MinIO Storage
-MINIO_ACCESS_KEY=your_minio_access_key
-MINIO_SECRET_KEY=your_minio_secret_key_min_8_chars
-
-# Email (Gmail App Password recommended)
+# Email Configuration (replace with your Gmail)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your_email@gmail.com
 SMTP_PASSWORD=your_gmail_app_password
 FROM_EMAIL=your_email@gmail.com
 
-# Frontend URLs
-FRONTEND_URL=http://your-server-ip
-FRONTEND_WS_URL=ws://your-server-ip
+# Frontend Configuration
+FRONTEND_URL=http://knot.name.vn
+FRONTEND_WS_URL=ws://knot.name.vn
 ```
 
-#### 4. Start the System
+### Step 4: Deploy Application
 
-**Option 1: Using Alembic Migrations (Recommended)**
 ```bash
 # Start all services with automatic migrations
-docker compose up -d
+docker compose up -d --build
 
-# Check status
+# Check deployment status
 docker compose ps
 
-# View logs
+# View logs to ensure everything is working
 docker compose logs -f
-
-# Check migration status (optional)
-docker compose exec backend alembic current
 ```
 
-**Option 2: Using database/db.sql Schema**
-```bash
-# Start with pre-built database schema
-docker compose -f docker-compose.db-sql.yml up -d
+### Step 5: Verify Deployment
 
-# Check status
-docker compose -f docker-compose.db-sql.yml ps
-```
+Access your application:
+- **Main Website**: http://knot.name.vn
+- **Backend API**: http://knot.name.vn:8000/docs
+- **MinIO Console**: http://knot.name.vn:9001
 
-**Note**: 
-- **Option 1** runs Alembic migrations automatically on startup (recommended for production)
-- **Option 2** uses the static `database/db.sql` file and marks migrations as complete
-
-#### 5. Initialize MinIO Bucket (Optional)
+### Step 6: Create Admin User (Optional)
 
 ```bash
-# Make script executable
-chmod +x scripts/init-minio.sh
-
-# Run initialization
-docker run --rm --network knot_knot-network \
-  -e MINIO_ACCESS_KEY=your_minio_access_key \
-  -e MINIO_SECRET_KEY=your_minio_secret_key \
-  -v $(pwd)/scripts:/scripts \
-  alpine:latest sh /scripts/init-minio.sh
+# Create admin user
+docker compose exec backend python scripts/create_admin.py
 ```
 
 ### Access the Application
