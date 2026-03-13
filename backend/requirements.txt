@@ -19,7 +19,7 @@ pydantic==2.8.2
 pydantic-settings==2.3.4
 email-validator==2.1.1
 bleach==6.1.0
-python-magic-bin==0.4.14   # MIME type validation for image uploads (Windows bundled)
+python-magic==0.4.27   # MIME type validation for image uploads (Linux compatible)
 
 # Auth
 python-jose[cryptography]==3.3.0
