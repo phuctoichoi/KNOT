@@ -1,5 +1,8 @@
 version: "3.9"
 
+# Alternative Docker Compose using database/db.sql instead of Alembic migrations
+# Usage: docker compose -f docker-compose.db-sql.yml up -d
+
 services:
   postgres:
     image: postgis/postgis:16-3.4
@@ -11,8 +14,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # Only create empty database with extensions, no schema
-      - ./scripts/init-postgres.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      # Use the original db.sql schema
+      - ./database/db.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     networks:
       - knot-network
     healthcheck:
@@ -101,25 +104,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    # Run migrations before starting the app
+    # Mark database as already migrated (since db.sql creates full schema)
     command: >
       sh -c "
-        echo 'Waiting for database to be ready...' &&
-        python -c 'import time; import asyncpg; import asyncio; 
-        async def wait_db():
-          for i in range(30):
-            try:
-              conn = await asyncpg.connect(\"postgresql://knot:${POSTGRES_PASSWORD}@postgres:5432/knot_db\")
-              await conn.close()
-              print(\"Database is ready!\")
-              return
-            except:
-              print(f\"Waiting for database... ({i+1}/30)\")
-              time.sleep(2)
-          raise Exception(\"Database not ready after 60 seconds\")
-        asyncio.run(wait_db())' &&
-        echo 'Running database migrations...' &&
-        alembic upgrade head &&
+        echo 'Database schema loaded from db.sql, marking migrations as complete...' &&
+        alembic stamp head &&
         echo 'Starting FastAPI server...' &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
       "
