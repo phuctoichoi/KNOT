@@ -2,115 +2,69 @@
 
 A comprehensive disaster reporting and relief coordination platform with real-time mapping, role-based dashboards, and emergency alert broadcasting.
 
-## 🚀 Production Deployment on Ubuntu VPS
+## 🚀 Quick Deployment on Ubuntu VPS
 
-Complete deployment guide for **knot.name.vn** (IP: 14.225.212.229)
+### Prerequisites
+- Fresh Ubuntu 22.04/24.04 VPS
+- Docker and Docker Compose installed
 
-### Server Information
-- **Domain**: knot.name.vn
-- **IP Address**: 14.225.212.229
-- **OS**: Ubuntu 22.04/24.04
-
-### Step 1: Prepare Ubuntu VPS
+### Installation
 
 ```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install Docker
+# 1. Install Docker (if not installed)
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 
-# Install Docker Compose
+# 2. Install Docker Compose
 sudo apt install docker-compose-plugin -y
 
-# Install Git (if not installed)
-sudo apt install git -y
-
-# Logout and login again for Docker group changes
-exit
-# SSH back into your VPS
-```
-
-### Step 2: Clone and Setup Project
-
-```bash
-# Clone the repository
+# 3. Clone repository
 git clone https://github.com/phuctoichoi/KNOT.git
 cd KNOT
 
-# Copy environment template
+# 4. Configure environment
 cp .env.example .env
+nano .env  # Edit with your values
+
+# 5. Deploy
+docker compose up -d
 ```
 
-### Step 3: Configure Environment Variables
+### Environment Configuration
 
-Edit the `.env` file with production values:
-
-```bash
-nano .env
-```
-
-**Complete .env configuration for knot.name.vn:**
+Edit `.env` with your production values:
 
 ```env
-# Database Configuration
-POSTGRES_PASSWORD=KnotSecureDB2024!
+# Database
+POSTGRES_PASSWORD=your_secure_password
 
-# Redis Configuration  
-REDIS_PASSWORD=KnotRedis2024!
+# Redis
+REDIS_PASSWORD=your_redis_password
 
 # Application Security (generate with: openssl rand -hex 32)
-SECRET_KEY=a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
+SECRET_KEY=your_secret_key
 
-# MinIO Object Storage
-MINIO_ACCESS_KEY=knotminio
-MINIO_SECRET_KEY=KnotMinIO2024!
+# MinIO Storage
+MINIO_ACCESS_KEY=your_minio_user
+MINIO_SECRET_KEY=your_minio_password
 
-# Email Configuration (replace with your Gmail)
+# Email (optional)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_gmail_app_password
+SMTP_PASSWORD=your_app_password
 FROM_EMAIL=your_email@gmail.com
 
-# Frontend Configuration
-FRONTEND_URL=http://knot.name.vn
-FRONTEND_WS_URL=ws://knot.name.vn
+# Frontend URLs
+FRONTEND_URL=http://your-domain.com
+FRONTEND_WS_URL=ws://your-domain.com
 ```
 
-### Step 4: Deploy Application
-
-```bash
-# Start all services with automatic migrations
-docker compose up -d --build
-
-# Check deployment status
-docker compose ps
-
-# View logs to ensure everything is working
-docker compose logs -f
-```
-
-### Step 5: Verify Deployment
-
-Access your application:
-- **Main Website**: http://knot.name.vn
-- **Backend API**: http://knot.name.vn:8000/docs
-- **MinIO Console**: http://knot.name.vn:9001
-
-### Step 6: Create Admin User (Optional)
-
-```bash
-# Create admin user
-docker compose exec backend python scripts/create_admin.py
-```
-
-### Access the Application
+### Access Points
 
 - **Frontend**: http://your-server-ip
-- **Backend API**: http://your-server-ip:8000/api/docs
+- **Backend API**: http://your-server-ip:8000/docs
 - **MinIO Console**: http://your-server-ip:9001
 
 ### Service Ports
@@ -123,86 +77,33 @@ docker compose exec backend python scripts/create_admin.py
 | MinIO API | 9000 | Object storage |
 | MinIO Console | 9001 | Storage admin UI |
 
-### Health Checks
-
-```bash
-# Check all services
-docker compose ps
-
-# Test backend health
-curl http://localhost:8000/api/health
-
-# Test frontend
-curl http://localhost:80
-
-# Check logs
-docker compose logs backend
-docker compose logs frontend
-```
-
 ### Management Commands
 
 ```bash
+# Check status
+docker compose ps
+
+# View logs
+docker compose logs -f
+
 # Stop services
 docker compose down
 
-# Update and restart
+# Update deployment
 git pull
-docker compose build --no-cache
-docker compose up -d
-
-# View logs
-docker compose logs -f [service_name]
-
-# Run database migrations manually (if needed)
-docker compose exec backend alembic upgrade head
-
-# Check migration status
-docker compose exec backend alembic current
-
-# Create new migration (development)
-docker compose exec backend alembic revision --autogenerate -m "description"
+docker compose up -d --build
 
 # Database backup
 docker compose exec postgres pg_dump -U knot knot_db > backup.sql
 
-# Restore database
-docker compose exec -T postgres psql -U knot knot_db < backup.sql
-
-# Clean up
-docker compose down -v  # WARNING: Removes all data
-```
-
-### Troubleshooting
-
-#### Common Issues
-
-1. **Services not starting**: Check logs with `docker compose logs [service]`
-2. **Database connection failed**: Ensure PostgreSQL is healthy
-3. **MinIO bucket errors**: Run the bucket initialization script
-4. **CORS errors**: Check FRONTEND_URL in environment variables
-
-#### Reset Everything
-
-```bash
-# Stop and remove all containers, networks, and volumes
+# Clean restart (removes all data)
 docker compose down -v
-docker system prune -a
-
-# Start fresh
 docker compose up -d
 ```
 
-### Production Considerations
+### Database Schema
 
-For production deployment:
-
-1. **Use HTTPS**: Set up SSL certificates and reverse proxy
-2. **Secure passwords**: Use strong, unique passwords for all services
-3. **Backup strategy**: Regular database and MinIO backups
-4. **Monitoring**: Set up logging and monitoring
-5. **Updates**: Regular security updates for base images
-6. **Firewall**: Restrict access to necessary ports only
+The application uses a complete PostgreSQL + PostGIS schema that is automatically initialized from `database/db.sql`. No migrations are required - the database is ready to use immediately after deployment.
 
 ### Architecture
 
@@ -212,9 +113,21 @@ For production deployment:
 - **Database**: PostgreSQL 16 + PostGIS
 - **Deployment**: Docker Compose
 
-### Support
+### Troubleshooting
 
-For issues and questions:
-1. Check the logs: `docker compose logs`
-2. Verify environment variables in `.env`
-3. Ensure all services are healthy: `docker compose ps`
+```bash
+# Check service health
+docker compose ps
+
+# View specific service logs
+docker compose logs backend
+docker compose logs frontend
+docker compose logs postgres
+
+# Test backend health
+curl http://localhost:8000/api/health
+
+# Reset everything (WARNING: removes all data)
+docker compose down -v
+docker compose up -d
+```

@@ -219,13 +219,3 @@ CREATE INDEX idx_logs_created ON activity_logs(created_at DESC);
 CREATE INDEX idx_logs_target ON activity_logs(target_type, target_id);
 
 -- Insert sample admin user
-INSERT INTO users (
-  full_name, email, password_hash, role, status, email_verified
-) VALUES (
-  'KNOT Admin',
-  'admin@knot.name.vn',
-  '$2b$12$LQv3c1yqBwlVHpPjrCeyeOeCfHdgDRL6BVXGkBgm2oWWBFkKhaAyW', -- Admin123!
-  'admin',
-  'active',
-  true
-) ON CONFLICT (email) DO NOTHING;

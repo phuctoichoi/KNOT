@@ -33,7 +33,7 @@ KNOT is a comprehensive Disaster Reporting and Relief Coordination Platform desi
 - **Backend**:
     - Framework: FastAPI (Python 3.10+)
     - ORM: SQLAlchemy v2 (Async)
-    - Database Migrations: Alembic
+    - Database Schema: Static SQL initialization (PostgreSQL + PostGIS)
     - Spatial Extension: GeoAlchemy2 (PostGIS)
     - Validation: Pydantic v2
 - **Database**: PostgreSQL (with PostGIS extension)
@@ -64,7 +64,7 @@ knot/
 │   │   ├── pages/      # Route pages (public & dashboard)
 │   │   ├── services/   # API client modules
 │   │   └── store/      # Global state (Zustand)
-├── database/           # SQL scripts and migrations
+├── database/           # SQL schema and initialization scripts
 ├── infrastructure/     # Deployment configs (Docker, Nginx)
 ```
 
