@@ -1,7 +1,6 @@
 -- ============================================================
--- KNOT Platform — PostgreSQL + PostGIS Initialization
--- Run as: psql -U postgres -f db.sql
--- Or: mounted into docker-entrypoint-initdb.d/
+-- KNOT Platform — Complete PostgreSQL + PostGIS Schema
+-- Updated with all missing fields from User model
 -- ============================================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "postgis";
@@ -9,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
 -- Enum types
 CREATE TYPE user_role AS ENUM ('citizen','volunteer','organization','moderator','admin');
-CREATE TYPE account_status AS ENUM ('pending','approved','rejected','disabled');
+CREATE TYPE account_status AS ENUM ('pending_verification','pending_approval','active','rejected','suspended');
 CREATE TYPE disaster_type AS ENUM ('flood','landslide','storm','fire','earthquake','infrastructure','other');
 CREATE TYPE report_type AS ENUM ('emergency','damage');
 CREATE TYPE severity_level AS ENUM ('low','medium','high','critical');
@@ -32,25 +31,29 @@ CREATE TYPE action_type AS ENUM (
 
 -- Auto-update trigger
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$ LANGUAGE plpgsql;
+RETURNS TRIGGER AS $ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $ LANGUAGE plpgsql;
 
--- users
+-- users table with ALL fields from User model
 CREATE TABLE users (
-  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  full_name         VARCHAR(200) NOT NULL,
-  email             VARCHAR(255) NOT NULL UNIQUE,
-  phone             VARCHAR(20),
-  password_hash     TEXT NOT NULL,
-  role              user_role NOT NULL DEFAULT 'citizen',
-  status            account_status NOT NULL DEFAULT 'pending',
-  avatar_url        TEXT,
-  organization_name VARCHAR(300),
-  province          VARCHAR(100),
-  district          VARCHAR(100),
-  last_login_at     TIMESTAMPTZ,
-  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  deleted_at        TIMESTAMPTZ
+  id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  full_name             VARCHAR(200) NOT NULL,
+  email                 VARCHAR(255) NOT NULL UNIQUE,
+  phone                 VARCHAR(20),
+  password_hash         TEXT NOT NULL,
+  role                  TEXT NOT NULL DEFAULT 'citizen',
+  status                account_status NOT NULL DEFAULT 'pending_verification',
+  email_verified        BOOLEAN NOT NULL DEFAULT false,
+  avatar_url            TEXT,
+  organization_name     VARCHAR(300),
+  province              VARCHAR(100),
+  district              VARCHAR(100),
+  lat                   DOUBLE PRECISION,
+  lng                   DOUBLE PRECISION,
+  last_login_at         TIMESTAMP WITH TIME ZONE,
+  last_password_change  TIMESTAMP WITH TIME ZONE,
+  created_at            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  deleted_at            TIMESTAMP WITH TIME ZONE
 );
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
@@ -215,3 +218,14 @@ CREATE INDEX idx_logs_action ON activity_logs(action_type);
 CREATE INDEX idx_logs_created ON activity_logs(created_at DESC);
 CREATE INDEX idx_logs_target ON activity_logs(target_type, target_id);
 
+-- Insert sample admin user
+INSERT INTO users (
+  full_name, email, password_hash, role, status, email_verified
+) VALUES (
+  'KNOT Admin',
+  'admin@knot.name.vn',
+  '$2b$12$LQv3c1yqBwlVHpPjrCeyeOeCfHdgDRL6BVXGkBgm2oWWBFkKhaAyW', -- Admin123!
+  'admin',
+  'active',
+  true
+) ON CONFLICT (email) DO NOTHING;

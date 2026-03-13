@@ -11,7 +11,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # Only create empty database with extensions, no schema
+      # Load complete schema from db.sql
+      - ./database/db.sql:/docker-entrypoint-initdb.d/db.sql:ro
       - ./scripts/init-postgres.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     networks:
       - knot-network
@@ -101,13 +102,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    # Run migrations before starting the app
+    # Start FastAPI server (no migrations)
     command: >
       sh -c "
         echo 'Waiting for database to be ready...' &&
         python wait-for-db.py &&
-        echo 'Running database migrations...' &&
-        alembic upgrade head &&
         echo 'Starting FastAPI server...' &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
       "
