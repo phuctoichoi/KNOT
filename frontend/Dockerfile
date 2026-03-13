@@ -23,7 +23,7 @@ ENV VITE_API_URL=${VITE_API_URL}
 ENV VITE_WS_URL=${VITE_WS_URL}
 ENV VITE_MAP_TILE_URL=${VITE_MAP_TILE_URL}
 
-# Build the application
+# Build the application (skip type checking if needed)
 RUN npm run build
 
 # Production stage with nginx
