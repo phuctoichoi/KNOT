@@ -23,8 +23,8 @@ ENV VITE_API_URL=${VITE_API_URL}
 ENV VITE_WS_URL=${VITE_WS_URL}
 ENV VITE_MAP_TILE_URL=${VITE_MAP_TILE_URL}
 
-# Build the application (skip type checking if needed)
-RUN npm run build
+# Build the application with type checking disabled for Docker compatibility
+RUN npm run build:skip-types
 
 # Production stage with nginx
 FROM nginx:alpine
