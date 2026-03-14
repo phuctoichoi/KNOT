@@ -31,7 +31,12 @@ CREATE TYPE action_type AS ENUM (
 
 -- Auto-update trigger
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $ LANGUAGE plpgsql;
+RETURNS TRIGGER AS $$
+BEGIN 
+    NEW.updated_at = NOW(); 
+    RETURN NEW; 
+END;
+$$ LANGUAGE plpgsql;
 
 -- users table with ALL fields from User model
 CREATE TABLE users (
