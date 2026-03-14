@@ -218,4 +218,17 @@ CREATE INDEX idx_logs_action ON activity_logs(action_type);
 CREATE INDEX idx_logs_created ON activity_logs(created_at DESC);
 CREATE INDEX idx_logs_target ON activity_logs(target_type, target_id);
 
+-- safety_checkins
+CREATE TABLE safety_checkins (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  lat         DOUBLE PRECISION NOT NULL,
+  lng         DOUBLE PRECISION NOT NULL,
+  address_text VARCHAR(500),
+  note        TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_safety_checkins_user ON safety_checkins(user_id);
+CREATE INDEX idx_safety_checkins_created ON safety_checkins(created_at DESC);
+
 -- Insert sample admin user
