@@ -105,6 +105,19 @@ CREATE TABLE report_images (
 );
 CREATE INDEX idx_report_images_report ON report_images(report_id);
 
+-- report_updates
+CREATE TABLE report_updates (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  report_id  UUID NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  content    TEXT NOT NULL,
+  image_url  TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_report_updates_report ON report_updates(report_id);
+CREATE INDEX idx_report_updates_user ON report_updates(user_id);
+CREATE INDEX idx_report_updates_created ON report_updates(created_at DESC);
+
 -- alerts
 CREATE TABLE alerts (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -230,5 +243,28 @@ CREATE TABLE safety_checkins (
 );
 CREATE INDEX idx_safety_checkins_user ON safety_checkins(user_id);
 CREATE INDEX idx_safety_checkins_created ON safety_checkins(created_at DESC);
+
+-- relief_posts
+CREATE TABLE relief_posts (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title         VARCHAR(500) NOT NULL,
+  content       TEXT NOT NULL,
+  route         VARCHAR(500),
+  province      VARCHAR(100),
+  district      VARCHAR(100),
+  contact_phone VARCHAR(20),
+  contact_email VARCHAR(255),
+  starts_at     TIMESTAMPTZ,
+  expires_at    TIMESTAMPTZ,
+  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_relief_posts_org ON relief_posts(org_id);
+CREATE INDEX idx_relief_posts_province ON relief_posts(province);
+CREATE INDEX idx_relief_posts_active ON relief_posts(is_active);
+CREATE INDEX idx_relief_posts_created ON relief_posts(created_at DESC);
+CREATE TRIGGER trg_relief_posts_upd BEFORE UPDATE ON relief_posts FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- Insert sample admin user
